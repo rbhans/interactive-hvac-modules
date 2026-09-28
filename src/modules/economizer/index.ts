@@ -1,4 +1,5 @@
 import type { LabModule } from "@/lab/types";
+import { asset } from "@/lib/basePath";
 import { bindings } from "./bindings";
 import Card from "./card.mdx";
 import { controls } from "./controls";
@@ -14,7 +15,7 @@ const economizer: LabModule<EconInputs, EconState, EconOutputs> = {
   intro:
     "Every large building mixes fresh outside air with air coming back from the rooms. When it's cool outside, more outside air means free cooling. Play with the weather, load a preset, and break things. The 3D unit shows what the air is really doing, and the panel shows what the control system thinks is happening.",
   glossary,
-  glb: "/lab/economizer/scene.glb",
+  glb: asset("/lab/economizer/scene.glb"),
   camera: { position: [-4.2, 3.9, 7.7], target: [0.2, 0.6, 0], fov: 32 },
   model: { init, step, outputs },
   bindings,

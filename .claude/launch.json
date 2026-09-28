@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "3217"],
       "port": 3217
+    },
+    {
+      "name": "bas-lab-worker",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["wrangler", "dev", "--port", "8791"],
+      "port": 8791
     }
   ]
 }

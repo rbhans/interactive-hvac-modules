@@ -7,6 +7,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    "site:build": "EXPORT=1 BASE_PATH=/tools/bas-lab SITE_HOME=/tools NEXT_DIST_DIR=.next-build next build",
+    "site:bundle": "node scripts/package-site.mjs",
+    "site:preview": "wrangler dev",
+    "deploy": "npm run lint && npm test && npm run site:build && npm run site:bundle && wrangler deploy",
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -42,6 +46,7 @@
     "meshoptimizer": "^1.3.0",
     "tailwindcss": "^4.3.3",
     "typescript": "5.9.3",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "wrangler": "^4.142.0"
   }
 }

@@ -1,3 +1,4 @@
+import { asset } from "@/lib/basePath";
 import type { AnyLabModule } from "./types";
 
 export interface RegistryEntry {
@@ -20,7 +21,7 @@ export const registry: RegistryEntry[] = [
     number: "01",
     title: "Economizer",
     insight: "Damper position isn't outdoor-air percentage.",
-    glb: "/lab/economizer/scene.glb",
+    glb: asset("/lab/economizer/scene.glb"),
     load: () => import("@/modules/economizer").then((m) => m.default),
   },
   {
@@ -28,7 +29,7 @@ export const registry: RegistryEntry[] = [
     number: "02",
     title: "Coils & valves",
     insight: "Half the water does most of the work.",
-    glb: "/lab/coils/scene.glb",
+    glb: asset("/lab/coils/scene.glb"),
     load: () => import("@/modules/coils").then((m) => m.default),
   },
   { slug: "vav-box", number: "03", title: "VAV box", insight: "Pressure-independent doesn't mean pressure-proof." },

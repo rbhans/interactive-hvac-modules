@@ -1,4 +1,5 @@
 import type { Bindings } from "@/lab/types";
+import { asset } from "@/lib/basePath";
 import type { CoilInputs, CoilOutputs } from "./model";
 
 const f0 = (v: number) => (Number.isFinite(v) ? Math.round(v).toString() : "—");
@@ -10,7 +11,7 @@ export const bindings: Bindings<CoilInputs, CoilOutputs> = {
 
   // Air: solved on the real geometry (blender/sims/coils_flow.py); it picks up each coil's temperature as it passes
   field: {
-    url: "/lab/coils/flow.json",
+    url: asset("/lab/coils/flow.json"),
     position: () => 0,
     emit: { air: (o) => o.airFlow },
     tempF: { air: (o) => o.eat },

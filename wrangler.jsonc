@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // BAS Lab as a static export. No public URL of its own: robboborben.xyz forwards
+  // /tools/bas-lab/* here through the site's BAS_LAB service binding.
+  // Deploy with `npm run deploy`.
+  "name": "bas-lab",
+  "account_id": "463844ddec7e8872e4609cdac1b86305",
+  "compatibility_date": "2026-05-22",
+  "main": "./deploy/worker.ts",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "dist/site",
+    "binding": "ASSETS",
+    // a missing page under /tools/bas-lab gets the export's 404.html
+    "not_found_handling": "404-page"
+  }
+}

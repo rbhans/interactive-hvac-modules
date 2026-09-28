@@ -7,6 +7,8 @@ next-env.d.ts
 *.tsbuildinfo
 .DS_Store
 .next-build/
+dist/
+.wrangler/
 __pycache__/
 *.pyc
 

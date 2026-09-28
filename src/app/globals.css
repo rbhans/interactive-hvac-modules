@@ -562,3 +562,35 @@ body {
 .lesson p + p {
   margin-top: 0.9em;
 }
+
+/* ── robboborben.xyz site bar (site build only, see SiteBar.tsx) ─────────────────────────────
+   The same bar as the site's live demos (.network-map-demo-bar / -back in personal-site). */
+.site-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  background: #101216;
+  color: rgb(255 255 255 / 42%);
+  font-family: var(--font-fragment-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+.site-bar-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem;
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.75rem;
+  line-height: 1;
+  text-decoration: none;
+}
+.site-bar-back:hover,
+.site-bar-back:focus-visible {
+  color: #fff;
+}

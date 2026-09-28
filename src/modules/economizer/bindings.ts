@@ -1,4 +1,5 @@
 import type { Bindings } from "@/lab/types";
+import { asset } from "@/lib/basePath";
 import type { EconInputs, EconOutputs } from "./model";
 
 const f0 = (v: number) => (Number.isFinite(v) ? Math.round(v).toString() : "—");
@@ -16,7 +17,7 @@ export const bindings: Bindings<EconInputs, EconOutputs> = {
 
   // Airflow solved on the real geometry at several damper positions (blender/sims/economizer_flow.py)
   field: {
-    url: "/lab/economizer/flow.json",
+    url: asset("/lab/economizer/flow.json"),
     position: (o) => o.oaBladePos,
     emit: { oa: (o) => o.oaFlow, ra: (o) => o.raFlow + o.eaFlow },
     tempF: { oa: (o) => o.oat, ra: (o) => o.rat },

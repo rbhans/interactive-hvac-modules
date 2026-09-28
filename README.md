@@ -19,6 +19,24 @@ Routes:
 - `/lab/[slug]` shows a full module. Add `?preset=stuck` to start from a preset.
 - `/lessons/economizer` is an MDX lesson that embeds the module twice with `<LabEmbed />`.
 
+Live at [robboborben.xyz/tools/bas-lab](https://robboborben.xyz/tools/bas-lab/) (see [Deploy](#deploy)).
+
+## Deploy
+
+BAS Lab ships as a static export on its own Cloudflare Worker, `bas-lab`. It has no public URL of its own: the personal site's Worker (`../personal-site`) forwards `robboborben.xyz/tools/bas-lab/*` to it through its `BAS_LAB` service binding, so a BAS Lab update never needs a site deploy.
+
+```bash
+npm run deploy         # lint + tests, static export, lay out dist/site, wrangler deploy
+npm run site:preview   # after site:build + site:bundle: the Worker locally at :8787/tools/bas-lab/
+```
+
+- `npm run site:build` exports with `BASE_PATH=/tools/bas-lab` and `SITE_HOME=/tools`. The base path goes on every route; `asset()` (`src/lib/basePath.ts`) adds it to fetched files like GLBs and airflow fields; `SITE_HOME` adds the same "← Tools" bar across the top that the site's live demos (Dial, BAS System Map) wear (`src/app/SiteBar.tsx`). Plain `npm run dev` and `npm run build` stay at the root with no back link.
+- The export uses trailing slashes (`/lab/economizer/`), so every request stays under the base path.
+- `npm run site:bundle` copies the export to `dist/site/tools/bas-lab/`, the path the Worker serves it at. It fails if a page, a GLB or a field is missing, or if the build lacks the base path.
+- `deploy/worker.ts` redirects `/` and `/tools/bas-lab` to `/tools/bas-lab/`. Everything else is a static asset; missing pages get the export's 404.
+
+Deploy this Worker before the first site deploy that includes the binding.
+
 ## Layout
 
 ```
@@ -170,7 +188,7 @@ Status colors are consistent everywhere:
 
 ## Decisions on spec §9
 
-- **Hosting:** standalone Next app with the same stack. `src/lab` and `src/modules` lift into BASidekick or a `lab.` subdomain unchanged.
+- **Hosting:** standalone Next app with the same stack, deployed as a static export under robboborben.xyz/tools/bas-lab (see Deploy). `src/lab` and `src/modules` lift into BASidekick or a `lab.` subdomain unchanged.
 - **Stylization:** clean product-model look, neither toy nor photoreal.
 - **Shareable state:** presets via `?preset=`. Full custom state in the URL is not implemented yet.
 - **Units:** °F only for now. The heat ramp and model are in °F, so a units toggle would be a display-layer change.
