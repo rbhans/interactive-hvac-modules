@@ -80,8 +80,13 @@ export function CoilCurve({
   }, [key]);
 
   const water = outputs.flowOfMax;
-  const cap = Math.max(0, outputs.capOfMax);
   const stem = outputs.stemPct;
+  // The dot rides the coil's curve: what this much water delivers once the coil has caught up.
+  // Water changes the instant the valve moves, but the coil's metal and air take a few seconds,
+  // so the heat actually moved right now trails behind; that shows as a ring only while it lags.
+  const cap = coilCurve(spec, eat, ewt, (water / 100) * maxFlow, air, maxFlow) * 100;
+  const now = Math.max(0, outputs.capOfMax);
+  const lagging = Math.abs(now - cap) > 3;
 
   return (
     <div>
@@ -100,10 +105,11 @@ export function CoilCurve({
 
       <div className="screen mt-3 max-w-[440px] overflow-hidden p-1">
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-labelledby={`${id}-a`}>
-          <title id={`${id}-a`}>{`The coil's curve: ${fmt(water)} % of full water flow delivers ${fmt(cap)} % of the ${heat} the coil can do right now.`}</title>
+          <title id={`${id}-a`}>{`The coil's curve: ${fmt(water)} % of full water flow delivers ${fmt(cap)} % of the ${heat} the coil can do${lagging ? `; it's at ${fmt(now)} % right now and catching up` : ""}.`}</title>
           <Grid xLabel="WATER %" yLabel={`${heat.toUpperCase()} %`} />
           <path d={curves.coil} fill="none" stroke="var(--accent)" strokeWidth="2" />
           <path d={`M${X(water)} ${Y(0)} V${Y(cap)} H${X(0)}`} fill="none" stroke="var(--screen-ink)" strokeOpacity=".55" strokeDasharray="2 2" />
+          {lagging && <circle cx={X(water)} cy={Y(now)} r="4" fill="none" stroke="var(--accent)" strokeOpacity=".6" strokeWidth="1.25" />}
           <circle cx={X(water)} cy={Y(cap)} r="4.5" fill="var(--accent)" stroke="var(--screen)" strokeWidth="1.5" />
         </svg>
       </div>
@@ -121,10 +127,11 @@ export function CoilCurve({
           <path d={curves.valve} fill="none" stroke="#27b7ff" strokeWidth="1.5" strokeDasharray="4 3" />
           <path d={curves.combined} fill="none" stroke="var(--accent)" strokeWidth="2" />
           <circle cx={X(stem)} cy={Y(water)} r="3.5" fill="#27b7ff" stroke="var(--screen)" strokeWidth="1.5" />
+          {lagging && <circle cx={X(stem)} cy={Y(now)} r="4" fill="none" stroke="var(--accent)" strokeOpacity=".6" strokeWidth="1.25" />}
           <circle cx={X(stem)} cy={Y(cap)} r="4.5" fill="var(--accent)" stroke="var(--screen)" strokeWidth="1.5" />
         </svg>
       </div>
-      <div className="mt-2 flex items-center gap-3 text-[10.5px]">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px]">
         <span className="num flex items-center gap-1.5 text-ink-3">
           <svg width="14" height="4" aria-hidden>
             <line x1="0" y1="2" x2="14" y2="2" stroke="#27b7ff" strokeWidth="1.5" strokeDasharray="4 3" />
@@ -133,6 +140,12 @@ export function CoilCurve({
         </span>
         <span className="num flex items-center gap-1.5 text-ink-3">
           <span className="inline-block h-[2px] w-3.5 bg-accent" /> {heat}
+        </span>
+        <span className="num flex items-center gap-1.5 text-ink-3" title="The coil takes a few seconds to catch up after the valve moves">
+          <svg width="10" height="10" aria-hidden>
+            <circle cx="5" cy="5" r="3.6" fill="none" stroke="var(--accent)" strokeOpacity=".6" strokeWidth="1.25" />
+          </svg>
+          right now, catching up
         </span>
       </div>
 
