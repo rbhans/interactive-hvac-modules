@@ -1,0 +1,72 @@
+<CardSection id="basics" title="The basics">
+
+Most large buildings have an <Term id="ahu">air handler</Term> that pulls air back from the rooms, conditions it, and sends it out again. Some of that air has to be fresh, so the air handler also pulls in <Term id="oa">outside air</Term> and pushes about the same amount out through a <Term id="relief">relief</Term> opening.
+
+The <Term id="economizer">economizer</Term> decides the mix. Three sets of <Term id="damper">dampers</Term> move together, driven by one <Term id="actuator">actuator</Term>:
+
+- the **outside-air** damper, which opens to bring fresh air in,
+- the **return-air** damper, which closes as the outside one opens,
+- the **relief** damper, which opens to let the extra air out.
+
+On a cool day, outside air does the cooling for free. The <Term id="bas">control system</Term> watches the <Term id="mat">mixed-air temperature</Term> and opens or closes the dampers to hold it at a <Term id="setpoint">setpoint</Term>, usually about 55 °F.
+
+In the 3D view, streaks are air and their color is its temperature: blue is cold, white is room temperature, orange is hot. The panel on the right is what an operator would see.
+
+</CardSection>
+
+<CardSection id="position" title="Why position isn't percentage">
+
+The number on the graphic is how far the damper's shaft has turned. It is not how much of the air is from outside, and the two can be far apart.
+
+Two dampers set the mix, not one. As the outside-air damper opens, the return damper closes, and both pull from the same space. Each one also shares its path's resistance with louvers and ductwork. <Term id="authority">Authority</Term> is the damper's share of that resistance.
+
+Opposed-blade dampers barely pass air at the start of their stroke. This box is sized the way damper manufacturers recommend for opposed blades, at about 10 % authority. In a balanced box the mix crosses 50/50 at mid-stroke, but the low end is starved: even here, <em>20 % open is under 8 % outside air</em>. Parallel blades track closer to the diagonal, but at this authority they let total airflow swing mid-stroke.
+
+Many real dampers are simply sized to fit the duct, which leaves their authority lower still. That bends each damper's curve the other way: it passes most of its air early in its stroke, and the rest of the travel changes little. Anything that unbalances the two paths, such as a return fan, long return ductwork, or wind on the louver, shifts the whole curve. Try the Authority slider and the Return keys.
+
+The <Term id="loop">control loop</Term> doesn't care, because it watches temperature and finds the right position anyway. Position matters when someone reads it as airflow. It also matters for tuning, because the steep middle of the curve is where the loop hunts first.
+
+</CardSection>
+
+<CardSection id="min-oa" title="What minimum outside air is for">
+
+<Term id="minoa">Minimum outside air</Term> is about ventilation, not temperature. Codes and ASHRAE Standard 62.1 set the fresh air a space needs in cubic feet per minute, from how many people it holds and how big it is. The control system stores a damper position, and that position only turns into airflow through the curve.
+
+"20 % minimum" is usually a habit, not a measurement. On this box 20 % open is under 8 % outside air. The **Cold day** preset's minimum was set by measuring instead: 32 % open for about 20 %. Ways to measure:
+
+- An airflow station or a duct traverse.
+- The temperature method the `OA-PCT` point uses: outside-air % = (return − mixed) ÷ (return − outside). It's only trustworthy when outside and return air are far apart, ideally 20 °F or more (the point goes blank under 10 °F), and it's only as good as the mixed-air sensor. Add a <Term id="offset">sensor error</Term> in the service panel and watch it drift.
+
+A fixed position also drifts with fan speed: slow the fan and the same position lets in less outside air. That's why current sequences such as ASHRAE Guideline 36 control minimum outside air with airflow or pressure measurement, not a fixed position.
+
+Under all of this sits <Term id="freeze">freeze protection</Term>. If the mixed air falls toward freezing, a safety at <Term id="priority">priority</Term> 5 overrides everything below it, including a person at 8, and pulls the damper to minimum and then closed. Put the damper in manual at 100 % and drag the outside temperature down to see it take over.
+
+</CardSection>
+
+<CardSection id="high-limit" title="Why free cooling shuts off">
+
+The loop only knows one move: when the mixed air is warmer than the setpoint, open the outside-air damper. That's right while outside air is cooler than the air coming back from the rooms. Once it's warmer, every bit of opening brings in more heat, and the loop keeps opening anyway.
+
+The <Term id="highlimit">high limit</Term> is the brake. Above it, the program stops economizing and holds minimum outside air no matter what. There are three common kinds:
+
+- A **fixed limit** on outside temperature is the simplest. The energy code sets it by climate.
+- A **differential limit** compares outside and return temperatures, so it adapts to the building.
+- An **enthalpy-based limit** accounts for humidity, which a temperature comparison can't see. It's the better choice in humid climates.
+
+Try it: raise "Free cooling up to" past the return temperature, then bring the outside temperature up to about 76 °F. The damper opens wide and <em>the mixed air climbs above the return air</em>. Pull the limit back down and the program shuts free cooling off on the next pass.
+
+</CardSection>
+
+<CardSection id="stuck" title="What a stuck damper looks like on a graphic">
+
+The <Term id="command">command</Term> is what the controller sends. The <Term id="feedback">feedback</Term> is what the actuator reports about its own shaft. If the clamp holding the actuator to the damper shaft slips, or a linkage pin walks out, the actuator keeps turning and reporting while the blades stay put.
+
+On the graphic everything agrees: command 100 %, feedback 100 %, no alarm. The only tell is <em>physics that doesn't add up</em>:
+
+- The mixed air stays near room temperature on a 45 °F day with the damper "wide open."
+- The outside-air % estimated from temperatures reads single digits while the position says 100.
+- The loop's output is stuck at its maximum and the error never closes.
+
+Automated fault detection for air handlers, such as the fault rules in ASHRAE Guideline 36, is built on comparisons like these. Load **Stuck damper**, then open the cutaway. The orange actuator's dial turns while the shaft and blades don't move.
+
+</CardSection>

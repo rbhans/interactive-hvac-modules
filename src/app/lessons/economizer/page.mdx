@@ -1,0 +1,22 @@
+import { LabEmbed } from "@/lab/shell/LabEmbed";
+import { LessonShell } from "../LessonShell";
+
+export const metadata = { title: "Economizer basics" };
+
+<LessonShell>
+
+# Economizer basics
+
+An air-side economizer uses outdoor air for free cooling whenever it's cool enough. One actuator drives the outdoor, return and relief dampers together, and a loop holds mixed-air temperature at setpoint.
+
+The graphic shows the damper at some percentage, and it's tempting to read that as percent outdoor air. It isn't. Load the mild day and compare the command with the outdoor-air fraction.
+
+<LabEmbed slug="economizer" preset="mild-day" controls={["curve"]} />
+
+## When the graphic lies
+
+Now the linkage has slipped. The command and the feedback agree, and there's no alarm. Only the physics gives it away.
+
+<LabEmbed slug="economizer" preset="stuck" />
+
+</LessonShell>

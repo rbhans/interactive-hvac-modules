@@ -1,0 +1,59 @@
+<CardSection id="basics" title="The basics">
+
+After the <Term id="ahu">air handler</Term> mixes its air, the air passes through two <Term id="coil">coils</Term>: a heating coil fed with <Term id="hw">hot water</Term>, then a cooling coil fed with <Term id="chw">chilled water</Term>. Both come from the building's <Term id="plant">plant</Term>. A coil is a radiator for air. Water runs through its tubes, air squeezes between thin fins, and heat moves from whichever is warmer to whichever is cooler.
+
+Each coil has a <Term id="valve">control valve</Term> that meters how much water goes through it. An <Term id="actuator">actuator</Term> on top moves the valve's <Term id="stem">stem</Term> up and down. The <Term id="bas">control system</Term> watches the <Term id="dat">discharge air</Term> leaving the unit and opens one valve or the other to hold it at a <Term id="setpoint">setpoint</Term>: about 55 °F when cooling, warmer when heating.
+
+In the 3D view, the thin streaks in the pipes are water and the wide ones are air. Their color is temperature: blue is cold, white is room temperature, orange is hot, and the hot-water pipes run hotter still, into magenta. Water streaks only move while water is actually flowing. Watch the air change color as it crosses each coil. When the cooling coil is below the air's dew point, it sweats: <Term id="condensate">condensate</Term> drips into the pan underneath.
+
+</CardSection>
+
+<CardSection id="half" title="Half the water does most of the work">
+
+Opening a valve halfway doesn't get you half the heating or cooling. A coil's first bit of water gets used hard. It has the whole coil to itself, so it warms up (or cools down) a lot before it leaves. Add more water and each extra gallon spends less time in the coil and comes back closer to the temperature it went in at. Pile on more flow and the coil runs out of fin area to use it.
+
+On the **Warm afternoon** preset, 57 % of the cooling valve's full flow is doing 84 % of the cooling the coil can do. On the **Cold morning** preset, 29 % of the hot water does about two-thirds of the heating. The top chart on the bench is this curve, and the dot is where the coil is right now.
+
+Every water coil has this shape. Heating coils usually bend harder: hot water starts so far above the air temperature that even a trickle carries a lot of heat. It explains most of what follows: how valves are chosen, why "just open it more" rarely helps, and why a slight leak does more than you'd expect.
+
+</CardSection>
+
+<CardSection id="valves" title="Why the valve's shape matters">
+
+If the coil does most of its work in the first bit of water, a valve that hands out water evenly would do most of its work in the first bit of travel. The <Term id="loop">control loop</Term> would be steering with a twitchy wheel.
+
+The usual fix is an <Term id="equal">equal-percentage</Term> valve. Its plug is shaped to pass very little water at first and more later, the mirror image of the coil's curve. Put the two together and opening tracks the heating or cooling closely: half open is about half. On the valve chart, the dashed blue line is water and the orange line is heating or cooling.
+
+That only works if the valve is sized right. <Term id="authority">Authority</Term> is the valve's share of the pressure drop in its branch of piping. An oversized valve takes very little of it, so its careful shape gets flattened by the pipe and coil around it. Switch the bench to **Linear** and **Oversized**: at 20 % open, it's already delivering most of the heat.
+
+Load **Oversized valve** to see what that does to the loop. The valve lives in the first few percent of its stroke, where every small move is a big change in heat, and the actuator's bit of slop is enough to make the air <Term id="hunting">hunt</Term> back and forth. Valves that throttle near their seat also wear out faster.
+
+</CardSection>
+
+<CardSection id="wide-open" title="Wide open isn't free">
+
+When a space is warm, a common fix is to put the cooling valve in manual at 100 %. Load **Wide open, barely better**. Water flow goes up by about 75 %. Cooling goes up by about 18 %. The air gets a little colder than it needs to be, and the water comes back to the plant about 9 °F warmer instead of 13.
+
+This preset's air is dry, so the coil stays dry and all of its cooling shows up as temperature. On a humid day a wet coil would also wring out more moisture when opened wide, so total cooling would gain more than 18 %, but the water would still come back too cool.
+
+That last number is the expensive one. Chillers and pumps are sized for a certain water <Term id="dt">ΔT</Term>. When coils take more water than they need, the plant has to pump more of it, and often start another chiller just to move the water, not to make more cold. Across a whole building this is called <Term id="lowdt">low ΔT syndrome</Term>, and valves left wide open are a common cause.
+
+Sometimes the valve is at 100 % because it has to be. Load **Warm chilled water**: the plant is sending 52 °F water, and no amount of flow can get the air to 55 °F. A valve pinned open is a question to ask upstream: what's the water temperature, and is the coil getting the flow the valve thinks it's passing?
+
+</CardSection>
+
+<CardSection id="leak" title="A leaking valve, on a graphic">
+
+A control valve closes against a seat. If the seat wears, or the actuator can't push hard enough against the pump's pressure, some water gets by. The <Term id="command">command</Term> says 0 %, the <Term id="feedback">feedback</Term> says 0 %, and a little hot water still flows through the coil.
+
+Load **Leaking heating valve**. Because the coil makes so much of so little water, an 8 % leak warms the air about 10 °F. The loop can't see the heating coil. It only sees warm discharge air, so it opens the cooling valve further to undo it. The two coils fight, and the building pays for both.
+
+On a typical graphic nothing is in alarm. The tells are indirect:
+
+- The cooling valve is near 100 % on a mild day.
+- Hot water leaves the unit cooler than it arrived, even though the heating valve is shut.
+- If there's a sensor between the coils, the air warms across a heating coil that's supposedly off.
+
+Fixes range from re-stroking the actuator to replacing the seat, or picking a valve rated to close off against the pump's full pressure.
+
+</CardSection>

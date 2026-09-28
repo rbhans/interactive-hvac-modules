@@ -1,0 +1,123 @@
+{
+ "version": 2,
+ "axes": "blender",
+ "layout": "staggered",
+ "data": "flow.bin.gz",
+ "note": "Potential-flow face velocities (m/s) for the economizer at several damper positions. Per state: ux (nx+1, ny, nz), uy (nx, ny+1, nz), uz (nx, ny, nz+1), each x fastest. int8, sqrt-companded: v = sign(q) * (q/127)^2 * vmax; -128 marks a wall face (no flow, particles collide). vmax is the 99.5th percentile of face speed (>= 5.5 m/s); the fan-inlet jet above it is clipped.",
+ "lo": [
+  -1.75,
+  -0.6,
+  0.12
+ ],
+ "h": 0.05,
+ "n": [
+  87,
+  24,
+  40
+ ],
+ "supply": 1.2,
+ "states": [
+  {
+   "pos": 0.25,
+   "vmax": 5.5,
+   "flows": {
+    "oa": 0.14145681297126453,
+    "raMix": 1.0585431870287354,
+    "relief": 0.06945681297126453,
+    "return": 1.128,
+    "supply": 1.2
+   },
+   "ux": 0,
+   "uy": 84480,
+   "uz": 171480
+  },
+  {
+   "pos": 0.4,
+   "vmax": 5.5,
+   "flows": {
+    "oa": 0.38390137642169136,
+    "raMix": 0.8160986235783086,
+    "relief": 0.31190137642169136,
+    "return": 1.1280000000000001,
+    "supply": 1.2
+   },
+   "ux": 257088,
+   "uy": 341568,
+   "uz": 428568
+  },
+  {
+   "pos": 0.55,
+   "vmax": 5.5,
+   "flows": {
+    "oa": 0.7108493595537873,
+    "raMix": 0.4891506404462127,
+    "relief": 0.6388493595537872,
+    "return": 1.128,
+    "supply": 1.2
+   },
+   "ux": 514176,
+   "uy": 598656,
+   "uz": 685656
+  },
+  {
+   "pos": 0.75,
+   "vmax": 5.5,
+   "flows": {
+    "oa": 1.0585431870287354,
+    "raMix": 0.14145681297126456,
+    "relief": 0.9865431870287354,
+    "return": 1.1280000000000001,
+    "supply": 1.2
+   },
+   "ux": 771264,
+   "uy": 855744,
+   "uz": 942744
+  },
+  {
+   "pos": 1.0,
+   "vmax": 5.5,
+   "flows": {
+    "oa": 1.1776591083927452,
+    "raMix": 0.02234089160725463,
+    "relief": 1.1056591083927454,
+    "return": 1.1280000000000001,
+    "supply": 1.2
+   },
+   "ux": 1028352,
+   "uy": 1112832,
+   "uz": 1199832
+  }
+ ],
+ "emit": {
+  "oa": {
+   "lo": [
+    -1.74,
+    -0.6,
+    0.16
+   ],
+   "hi": [
+    -1.65,
+    0.6,
+    1.34
+   ]
+  },
+  "ra": {
+   "lo": [
+    2.5,
+    -0.39,
+    1.38
+   ],
+   "hi": [
+    2.59,
+    0.39,
+    2.01
+   ]
+  }
+ },
+ "stages": [
+  {
+   "id": "mix",
+   "x": 0.3
+  }
+ ]
+}

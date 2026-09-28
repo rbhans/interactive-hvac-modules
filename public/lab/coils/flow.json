@@ -1,0 +1,55 @@
+{
+ "version": 2,
+ "axes": "blender",
+ "layout": "staggered",
+ "data": "flow.bin.gz",
+ "note": "Potential-flow face velocities (m/s) through the coil section. One state. ux (nx+1, ny, nz), uy (nx, ny+1, nz), uz (nx, ny, nz+1), each x fastest. int8, sqrt-companded: v = sign(q) * (q/127)^2 * vmax; -128 marks a wall face (no flow, particles collide). vmax is the 99.5th percentile of face speed (>= 5.5 m/s); the fan-inlet jet above it is clipped.",
+ "lo": [
+  -2.2,
+  -0.6,
+  0.12
+ ],
+ "h": 0.04,
+ "n": [
+  120,
+  30,
+  32
+ ],
+ "supply": 1.18,
+ "states": [
+  {
+   "pos": 0,
+   "vmax": 5.5,
+   "flows": {
+    "supply": 1.18
+   },
+   "ux": 0,
+   "uy": 116160,
+   "uz": 235200
+  }
+ ],
+ "emit": {
+  "air": {
+   "lo": [
+    -2.19,
+    -0.55,
+    0.21
+   ],
+   "hi": [
+    -2.08,
+    0.55,
+    1.31
+   ]
+  }
+ },
+ "stages": [
+  {
+   "id": "hw",
+   "x": -0.952
+  },
+  {
+   "id": "chw",
+   "x": -0.302
+  }
+ ]
+}

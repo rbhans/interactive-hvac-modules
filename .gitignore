@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+build/
+*.blend1
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+.next-build/
+__pycache__/
+*.pyc
+
+# marketing captures, not part of the app
+share/
+
+# Claude Code session state
+.claude/scheduled_tasks.lock

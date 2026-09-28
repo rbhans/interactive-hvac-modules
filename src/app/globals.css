@@ -1,0 +1,564 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BAS Lab — design tokens
+   A warm Braun chassis with Teenage Engineering keys, and a dark display for the
+   equipment. The display stays dark in both themes; the chassis follows the system.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* neutrals follow sael.net: white page, #f3f3f5 tiles, cool grays */
+  --chassis: #ffffff;
+  --panel: #f3f3f5;
+  --panel-2: #ebebee;
+  --well: #e6e6ea;
+  --ink: #111113;
+  --ink-2: #6b6b72;
+  --ink-3: #8a8a90;
+  --line: rgba(0, 0, 0, 0.07);
+  --line-2: rgba(0, 0, 0, 0.14);
+  --key: #ffffff;
+  --key-edge: rgba(0, 0, 0, 0.1);
+  --key-shadow: rgba(0, 0, 0, 0.06);
+
+  --accent: #ff5a1f;
+  --accent-ink: #ffffff;
+  --ok: #1fa35b;
+  --fault: #f0a000;
+  --alarm: #e5391a;
+  --hand: #2c5bff;
+  --cold: #2f62ff;
+  --warm: #ff6a1f;
+
+  /* instrument screens (setpoint LCDs, trend, curve) stay dark in both themes */
+  --screen: #111113;
+  --screen-2: #18181a;
+  --screen-line: #26262a;
+  --screen-ink: #f1f1f2;
+  --screen-dim: #77777d;
+
+  /* the 3D stage */
+  --stage-top: #f8f8fa;
+  --stage-bottom: #dedee3;
+  --stage-ink: #111113;
+  --stage-dim: #8a8a90;
+  --stage-chip: rgba(255, 255, 255, 0.78);
+  --stage-chip-edge: rgba(0, 0, 0, 0.07);
+  --stage-chip-hover: #ffffff;
+  --stage-on: #111113;
+  --stage-on-ink: #ffffff;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --chassis: #0d0d0e;
+    --panel: #18181a;
+    --panel-2: #1b1b1d;
+    --well: #111113;
+    --ink: #f1f1f2;
+    --ink-2: #9a9aa0;
+    --ink-3: #77777d;
+    --line: rgba(255, 255, 255, 0.07);
+    --line-2: rgba(255, 255, 255, 0.13);
+    --key: #1b1b1d;
+    --key-edge: rgba(255, 255, 255, 0.08);
+    --key-shadow: rgba(0, 0, 0, 0.5);
+    --ok: #3fcf7f;
+    --screen: #0d0d0e;
+    --stage-top: #202124;
+    --stage-bottom: #0d0d0e;
+    --stage-ink: #f1f1f2;
+    --stage-dim: #77777d;
+    --stage-chip: rgba(255, 255, 255, 0.06);
+    --stage-chip-edge: rgba(255, 255, 255, 0.08);
+    --stage-chip-hover: rgba(255, 255, 255, 0.1);
+    --stage-on: #f1f1f2;
+    --stage-on-ink: #0d0d0e;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --chassis: #0d0d0e;
+  --panel: #18181a;
+  --panel-2: #1b1b1d;
+  --well: #111113;
+  --ink: #f1f1f2;
+  --ink-2: #9a9aa0;
+  --ink-3: #77777d;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.13);
+  --key: #1b1b1d;
+  --key-edge: rgba(255, 255, 255, 0.08);
+  --key-shadow: rgba(0, 0, 0, 0.5);
+  --ok: #3fcf7f;
+  --screen: #0d0d0e;
+  --stage-top: #202124;
+  --stage-bottom: #0d0d0e;
+  --stage-ink: #f1f1f2;
+  --stage-dim: #77777d;
+  --stage-chip: rgba(255, 255, 255, 0.06);
+  --stage-chip-edge: rgba(255, 255, 255, 0.08);
+  --stage-chip-hover: rgba(255, 255, 255, 0.1);
+  --stage-on: #f1f1f2;
+  --stage-on-ink: #0d0d0e;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-chassis: var(--chassis);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-well: var(--well);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-key: var(--key);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --color-fault: var(--fault);
+  --color-alarm: var(--alarm);
+  --color-hand: var(--hand);
+  --color-cold: var(--cold);
+  --color-warm: var(--warm);
+  --color-screen: var(--screen);
+  --color-screen-2: var(--screen-2);
+  --color-screen-line: var(--screen-line);
+  --color-screen-ink: var(--screen-ink);
+  --color-screen-dim: var(--screen-dim);
+  --color-stage-ink: var(--stage-ink);
+  --color-stage-dim: var(--stage-dim);
+}
+
+html {
+  background: var(--chassis);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--chassis);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Micro typography ──────────────────────────────────────────────────────── */
+
+.micro {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ── Surfaces ──────────────────────────────────────────────────────────────── */
+
+.chassis-panel {
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.well {
+  background: var(--well);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.screen {
+  background: var(--screen);
+  color: var(--screen-ink);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* The 3D stage: a soft studio sweep behind a transparent canvas */
+.stage {
+  background: radial-gradient(130% 95% at 50% 30%, var(--stage-top) 0%, var(--stage-bottom) 100%);
+  color: var(--stage-ink);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* Speaker-grille dot field, used as a quiet texture on the chassis header */
+.grille {
+  background-image: radial-gradient(circle, var(--line-2) 1.1px, transparent 1.3px);
+  background-size: 7px 7px;
+}
+
+/* ── Keys (TE-style square keys) ───────────────────────────────────────────── */
+
+.key {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--key);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 0 1px var(--key-edge),
+    0 2px 0 0 var(--key-edge),
+    0 3px 6px -2px var(--key-shadow);
+  transition:
+    transform 90ms ease,
+    box-shadow 90ms ease,
+    background-color 120ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.key:hover {
+  background: color-mix(in oklab, var(--key) 92%, var(--ink) 8%);
+}
+
+.key:active,
+.key[data-pressed="true"] {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 1px var(--key-edge),
+    0 0 0 0 var(--key-edge),
+    0 1px 2px -1px var(--key-shadow);
+}
+
+.key[data-on="true"] {
+  background: var(--ink);
+  color: var(--panel);
+  box-shadow:
+    0 0 0 1px var(--ink),
+    0 0 0 0 var(--ink);
+  transform: translateY(2px);
+}
+
+.key[data-tone="accent"][data-on="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 80%, black);
+}
+
+.key:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Keys on the 3D stage */
+.key-screen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 99px;
+  background: var(--stage-chip);
+  color: var(--stage-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px var(--stage-chip-edge);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+  touch-action: manipulation;
+}
+
+.key-screen:hover {
+  background: var(--stage-chip-hover);
+  color: var(--stage-ink);
+}
+
+.key-screen[data-on="true"] {
+  background: var(--stage-on);
+  color: var(--stage-on-ink);
+  box-shadow: none;
+}
+
+/* Braun round button (setpoint nudge) */
+.round-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: var(--ink-2);
+  background: radial-gradient(circle at 50% 35%, var(--key) 0%, color-mix(in oklab, var(--key) 88%, var(--ink) 12%) 100%);
+  box-shadow:
+    0 0 0 1px var(--key-edge),
+    0 2px 0 0 var(--key-edge),
+    0 3px 5px -2px var(--key-shadow);
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease;
+  touch-action: manipulation;
+}
+
+.round-key:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 1px var(--key-edge);
+}
+
+/* ── LEDs ──────────────────────────────────────────────────────────────────── */
+
+.led {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--line-2);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  flex: none;
+}
+
+.led[data-state="ok"] {
+  background: var(--ok);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--ok) 70%, transparent);
+}
+.led[data-state="fault"] {
+  background: var(--fault);
+  box-shadow: 0 0 6px var(--fault);
+  animation: led-pulse 1.1s ease-in-out infinite;
+}
+.led[data-state="alarm"] {
+  background: var(--alarm);
+  box-shadow: 0 0 6px var(--alarm);
+  animation: led-pulse 0.8s ease-in-out infinite;
+}
+.led[data-state="overridden"] {
+  background: var(--hand);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--hand) 70%, transparent);
+}
+.led[data-state="accent"] {
+  background: var(--accent);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--accent) 70%, transparent);
+}
+
+@keyframes led-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ── Fader (Braun hi-fi slider) ────────────────────────────────────────────── */
+
+.fader {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.fader::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--well);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.fader::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--well);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 28px;
+  margin-top: -12px;
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, transparent 7px, var(--accent) 7px, var(--accent) 9px, transparent 9px),
+    linear-gradient(180deg, var(--key), color-mix(in oklab, var(--key) 86%, var(--ink) 14%));
+  box-shadow:
+    0 0 0 1px var(--key-edge),
+    0 2px 4px -1px var(--key-shadow);
+}
+.fader::-moz-range-thumb {
+  width: 16px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, transparent 7px, var(--accent) 7px, var(--accent) 9px, transparent 9px),
+    linear-gradient(180deg, var(--key), color-mix(in oklab, var(--key) 86%, var(--ink) 14%));
+  box-shadow:
+    0 0 0 1px var(--key-edge),
+    0 2px 4px -1px var(--key-shadow);
+}
+
+.fader:focus-visible {
+  outline: none;
+}
+.fader:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 2px 4px -1px var(--key-shadow);
+}
+.fader:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 2px 4px -1px var(--key-shadow);
+}
+
+/* ── Scrollbars on the chassis ─────────────────────────────────────────────── */
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Explainer card prose ──────────────────────────────────────────────────── */
+
+.card-prose {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.card-prose h2 {
+  display: none;
+}
+.card-prose p + p {
+  margin-top: 0.8em;
+}
+.card-prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.card-prose em {
+  font-style: normal;
+  color: var(--ink);
+  box-shadow: inset 0 -0.4em 0 color-mix(in oklab, var(--accent) 22%, transparent);
+}
+.card-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--well);
+  color: var(--ink);
+}
+.card-prose ul + p {
+  margin-top: 0.8em;
+}
+.card-prose ul {
+  margin-top: 0.6em;
+  padding-left: 1.1em;
+  list-style: square;
+}
+.card-prose li + li {
+  margin-top: 0.3em;
+}
+.card-prose li::marker {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .crossfade {
+    transition-duration: 280ms !important;
+  }
+}
+
+@keyframes cue-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* glossary tooltip fade-in; `translate` so it composes with the inline horizontal transform */
+.term-tip {
+  animation: term-in 150ms ease-out;
+}
+@keyframes term-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .term-tip {
+    animation: none;
+  }
+}
+
+/* ── MDX lessons ───────────────────────────────────────────────────────────── */
+
+.lesson {
+  color: var(--ink-2);
+  font-size: 17px;
+  line-height: 1.65;
+}
+.lesson h1 {
+  color: var(--ink);
+  font-size: 40px;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.6em;
+}
+.lesson h2 {
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 1.8em;
+  margin-bottom: 0.4em;
+}
+.lesson p + p {
+  margin-top: 0.9em;
+}
