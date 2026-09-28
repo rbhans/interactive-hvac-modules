@@ -12,6 +12,7 @@ import { AirFlow } from "./AirFlow";
 import { Drips } from "./Drips";
 import { Equipment } from "./Equipment";
 import { FlowField } from "./FlowField";
+import { RideCamera } from "./RideCamera";
 import type { SceneIndex } from "./sceneIndex";
 
 
@@ -151,6 +152,7 @@ function Rig({ position, target }: { position: [number, number, number]; target:
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height));
   const fit = Math.min(1.75, Math.max(1, REF_ASPECT / aspect));
   const nonce = useRuntime((s) => s.cameraNonce);
+  const riding = useRuntime((s) => s.ride !== null);
   const invalidate = useThree((s) => s.invalidate);
   const gl = useThree((s) => s.gl);
   // Wheel zoom only after the user engages the canvas, so the page still scrolls past it.
@@ -174,7 +176,8 @@ function Rig({ position, target }: { position: [number, number, number]; target:
 
   useEffect(() => {
     const c = controls.current;
-    if (!c) return;
+    // the ride has the camera; when it ends it bumps the nonce and this flies home from wherever it was
+    if (!c || riding) return;
     const from = camera.position.clone();
     const fromT = c.target.clone();
     const toT = new THREE.Vector3(...target);
@@ -198,7 +201,7 @@ function Rig({ position, target }: { position: [number, number, number]; target:
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [nonce, camera, position, target, invalidate, fit]);
+  }, [nonce, camera, position, target, invalidate, fit, riding]);
 
   return (
     <OrbitControls
@@ -315,6 +318,7 @@ export default function LabCanvas({
         </AssetBoundary>
 
         <Rig position={mod.camera.position} target={mod.camera.target} />
+        {mod.bindings.ride && mod.bindings.field && <RideCamera active={active} />}
         <FrameDriver active={active} reduced={reduced} onSnapshot={onSnapshot} />
       </RuntimeContext.Provider>
     </Canvas>

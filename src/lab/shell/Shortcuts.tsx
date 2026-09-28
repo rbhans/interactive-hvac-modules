@@ -14,6 +14,7 @@ export const SHORTCUTS: { keys: string[]; label: string }[] = [
   { keys: ["F"], label: "Airflow particles" },
   { keys: ["L"], label: "Labels" },
   { keys: ["V"], label: "Home view" },
+  { keys: ["A"], label: "Be the air (Esc to leave)" },
   { keys: ["R"], label: "Reset" },
   { keys: ["?"], label: "This list" },
 ];
@@ -35,7 +36,15 @@ export function useShortcuts(store: RuntimeStore, onHelp: () => void) {
       if (t?.closest("dialog[open]")) return;
       const s = store.getState();
       const k = e.key.toLowerCase();
-      if (/^[1-9]$/.test(k)) {
+      if (e.key === "Escape") {
+        if (!s.ride) return;
+        s.endRide();
+      } else if (k === "a") {
+        const ride = s.mod.bindings.ride;
+        if (!ride || !s.mod.bindings.field || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (s.ride) s.endRide();
+        else s.startRide(ride.starts[0].id);
+      } else if (/^[1-9]$/.test(k)) {
         const p = s.mod.presets[Number(k) - 1];
         if (p) s.applyPreset(p.id);
       } else if (k === " " && !(t && /^(BUTTON|A)$/.test(t.tagName))) s.togglePlay();

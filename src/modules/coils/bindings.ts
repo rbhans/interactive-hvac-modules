@@ -104,4 +104,62 @@ export const bindings: Bindings<CoilInputs, CoilOutputs> = {
     { label: "IN", tempF: o.eat },
     { label: "OUT", tempF: o.datTrue },
   ],
+
+  // "Be the air": first-person trips along paths traced through the solved field (Blender coords, Z up)
+  ride: {
+    starts: [{ id: "air", label: "Mixed air", emit: "air", hint: "Arrive from the mixing box and ride through both coils." }],
+    zones: [
+      { label: "Arriving", lo: [-9, -9, -9], hi: [-1.66, 9, 9], note: (o) => `Mixed air at ${f0(o.eat)}°F, fresh from the mixing box upstream.` },
+      { label: "Filter", lo: [-1.66, -9, -9], hi: [-1.54, 9, 9], note: () => "Through the pleated filter." },
+      {
+        label: "Heading for the heating coil",
+        lo: [-1.54, -9, -9],
+        hi: [-1.01, 9, 9],
+        note: (o) =>
+          o.cooling
+            ? o.hwLeak > 0
+              ? "Its valve says shut. It isn't, quite."
+              : "Heating's off: its valve is shut, so nothing's flowing in it."
+            : `Its valve is ${f0(o.stemPct)}% open, passing ${f0(o.flowOfMax)}% of its full hot water.`,
+      },
+      {
+        label: "Heating coil",
+        lo: [-1.01, -9, -9],
+        hi: [-0.89, 9, 9],
+        note: (o) =>
+          o.hwRise > 0.3
+            ? `Hot fins warm you ${f1(o.hwRise)}°F${o.cooling ? ", even though this coil is supposed to be off" : ""}.`
+            : "Cold fins, no hot water. You slip straight through.",
+      },
+      { label: "Between the coils", lo: [-0.89, -9, -9], hi: [-0.425, 9, 9], note: (o) => `${f1(o.afterHw)}°F now. Next, the cooling coil.` },
+      {
+        label: "Cooling coil",
+        lo: [-0.425, -9, -9],
+        hi: [-0.175, 9, 9],
+        note: (o) =>
+          o.chwDrop > 0.3
+            ? `Squeezing between fins a couple of millimeters apart. Chilled water pulls ${f1(o.chwDrop)}°F out of you${o.condensate > 0.05 ? ", and some of your moisture condenses onto the fins" : ""}.`
+            : "No chilled water flowing. You slip straight through.",
+      },
+      {
+        label: "Discharge sensor",
+        lo: [-0.175, -9, -9],
+        hi: [0.3, 9, 9],
+        note: (o) =>
+          o.datOffset
+            ? `The sensor reads you as ${f1(o.datDisplayed)}°F. You're really ${f1(o.datTrue)}°F.`
+            : `The discharge sensor takes your temperature: ${f1(o.datDisplayed)}°F.`,
+      },
+      { label: "Fan", lo: [0.3, -9, -9], hi: [1.3, 9, 9], note: () => "Sucked into the fan inlet and flung outward by the spinning wheel." },
+      { label: "Supply duct", lo: [1.3, -9, -9], hi: [9, 9, 9], note: (o) => `On your way to the building at ${f1(o.datTrue)}°F.` },
+    ],
+    exits: [
+      {
+        label: "Into the building",
+        lo: [2.4, -9, -9],
+        hi: [9, 9, 9],
+        note: (o) => `You're supply air now, at ${f1(o.datTrue)}°F. From here you'll ${o.cooling ? "cool" : "warm"} a room, then come back for another lap.`,
+      },
+    ],
+  },
 };

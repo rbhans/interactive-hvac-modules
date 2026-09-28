@@ -11,6 +11,20 @@ export interface ViewState {
   labels: boolean;
 }
 
+/** What the first-person ride shows, refreshed a few times a second while riding. */
+export interface RideHud {
+  start: string;
+  zone: string;
+  note: string;
+  tempF: number;
+  /** Real air speed, ft/min */
+  fpm: number;
+  /** 0–1 along the trip */
+  progress: number;
+  /** Set when the trip is over */
+  done: { label: string; note: string } | null;
+}
+
 export interface TrendBuffer {
   t: number[];
   series: Record<string, number[]>;
@@ -36,6 +50,11 @@ export interface RuntimeState {
   /** Bumped to fly the camera home */
   cameraNonce: number;
   lastSample: number;
+  /** First-person trip through the airflow ("be the air"); null when not riding */
+  ride: { start: string; nonce: number } | null;
+  rideHud: RideHud | null;
+  /** The view to go back to when the ride ends */
+  rideView: ViewState | null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setInputs: (fn: (i: any) => any) => void;
@@ -47,6 +66,9 @@ export interface RuntimeState {
   toggleView: (k: keyof ViewState) => void;
   dismissCue: () => void;
   resetCamera: () => void;
+  startRide: (start: string) => void;
+  endRide: () => void;
+  setRideHud: (h: RideHud | null) => void;
   /** Advance by real seconds (scaled by speed, sub-stepped) */
   advance: (realDt: number) => void;
 }
@@ -91,6 +113,9 @@ export function createRuntime(
     transitionAt: 0,
     cameraNonce: 0,
     lastSample: -Infinity,
+    ride: null,
+    rideHud: null,
+    rideView: null,
 
     setInputs: (fn) => {
       const inputs = fn(get().inputs);
@@ -118,7 +143,14 @@ export function createRuntime(
 
     reset: () => {
       get().applyPreset(get().presetId ?? mod.defaultPreset);
-      set({ view: { cutaway: true, exploded: false, flow: true, labels: true, ...opts.view }, speed: 1, cameraNonce: get().cameraNonce + 1 });
+      set({
+        view: { cutaway: true, exploded: false, flow: true, labels: true, ...opts.view },
+        speed: 1,
+        cameraNonce: get().cameraNonce + 1,
+        ride: null,
+        rideHud: null,
+        rideView: null,
+      });
     },
 
     togglePlay: () => set({ running: !get().running }),
@@ -127,6 +159,32 @@ export function createRuntime(
     toggleView: (k) => set({ view: { ...get().view, [k]: !get().view[k] }, transitionAt: performance.now() }),
     dismissCue: () => set({ cue: null }),
     resetCamera: () => set({ cameraNonce: get().cameraNonce + 1, transitionAt: performance.now() }),
+
+    // riding: solid walls (you're inside them), air on, labels off; the old view comes back after
+    startRide: (start) => {
+      const st = get();
+      set({
+        ride: { start, nonce: (st.ride?.nonce ?? 0) + 1 },
+        rideHud: null,
+        rideView: st.rideView ?? st.view,
+        view: { cutaway: false, exploded: false, flow: true, labels: false },
+        running: true,
+        transitionAt: performance.now(),
+      });
+    },
+    endRide: () => {
+      const st = get();
+      if (!st.ride) return;
+      set({
+        ride: null,
+        rideHud: null,
+        view: st.rideView ?? st.view,
+        rideView: null,
+        cameraNonce: st.cameraNonce + 1,
+        transitionAt: performance.now(),
+      });
+    },
+    setRideHud: (rideHud) => set({ rideHud }),
 
     advance: (realDt) => {
       const st = get();

@@ -91,4 +91,59 @@ export const bindings: Bindings<EconInputs, EconOutputs> = {
     { label: "MIX", tempF: o.matTrue },
     { label: "RET", tempF: o.rat },
   ],
+
+  // "Be the air": first-person trips along paths traced through the solved field (Blender coords, Z up)
+  ride: {
+    starts: [
+      { id: "oa", label: "Outside air", emit: "oa", hint: "Start outdoors and get pulled into the unit." },
+      { id: "ra", label: "Return air", emit: "ra", hint: "Start in the duct back from the rooms. Where you end up depends on the dampers." },
+    ],
+    zones: [
+      { label: "Back outside", lo: [-9, -9, 1.36], hi: [-1.26, 9, 9], note: () => "Pushed out through the relief damper into the open air." },
+      {
+        label: "Relief damper",
+        lo: [-1.26, -9, 1.36],
+        hi: [-1.08, 9, 9],
+        note: (o) => `Squeezing between the relief damper's blades, ${f0(o.bladePosPct)}% open, on the way out of the building.`,
+      },
+      { label: "Outdoors", lo: [-9, -9, -9], hi: [-1.26, 9, 1.36], note: (o) => `Fresh air at ${f0(o.oat)}°F, drawn toward the intake by the fan.` },
+      {
+        label: "Outside-air damper",
+        lo: [-1.26, -9, -9],
+        hi: [-1.08, 9, 1.36],
+        note: (o) => `Slipping between the damper blades. They're ${f0(o.bladePosPct)}% open, but only ${f0(o.oaPct)}% of the air is coming in from outside.`,
+      },
+      { label: "Return duct", lo: [-1.08, -9, 1.38], hi: [9, 9, 9], note: (o) => `On your way back from the rooms at ${f0(o.rat)}°F.` },
+      {
+        label: "Return damper",
+        lo: [-0.98, -9, 1.2],
+        hi: [-0.12, 9, 1.38],
+        note: (o) => `Dropping through the return damper, ${f0(100 - o.bladePosPct)}% open, into the mixing box.`,
+      },
+      {
+        label: "Mixing box",
+        lo: [-1.08, -9, -9],
+        hi: [0.24, 9, 1.38],
+        note: (o) => `Outside and return air tumble together here and come out around ${f1(o.matTrue)}°F.`,
+      },
+      { label: "Filter", lo: [0.24, -9, -9], hi: [0.42, 9, 1.38], note: () => "Through the pleated filter. The dust you picked up outside stays here." },
+      { label: "Fan", lo: [0.42, -9, -9], hi: [1.4, 9, 1.38], note: () => "Sucked into the fan inlet and flung outward by the spinning wheel." },
+      { label: "Supply duct", lo: [1.4, -9, -9], hi: [9, 9, 1.36], note: (o) => `Off to the building at ${f1(o.matTrue)}°F.` },
+    ],
+    exits: [
+      {
+        label: "Into the building",
+        lo: [2.4, -9, -9],
+        hi: [9, 9, 1.36],
+        note: (o) => `You're supply air now, at about ${f0(o.matTrue)}°F. You'll cool a room for a while, then come back through the return duct.`,
+      },
+      {
+        label: "Back outside",
+        lo: [-9, -9, 1.3],
+        hi: [-1.3, 9, 9],
+        note: (o) =>
+          `The relief damper pushed you out. Right now about ${f0((100 * o.eaFlow) / Math.max(1e-6, o.eaFlow + o.raFlow))}% of the air coming back from the rooms leaves this way, to make room for fresh air.`,
+      },
+    ],
+  },
 };

@@ -83,7 +83,28 @@ export interface Condensate<O> {
   rate: (o: O) => number;
 }
 
+/** An axis-aligned box in Blender coordinates (Z up), the space the airflow field is solved in. */
+export interface RideBox {
+  lo: [number, number, number];
+  hi: [number, number, number];
+}
+
+/**
+ * "Be the air": a first-person trip along a path traced through the solved airflow field.
+ * Needs `field`. Zones and exits are boxes in Blender coordinates; the first match wins.
+ */
+export interface RideBinding<O> {
+  /** Where a trip can begin: an emit box in the field file, and the stream temperature it carries */
+  starts: { id: string; label: string; emit: string; hint?: string }[];
+  /** Where you are along the way */
+  zones: (RideBox & { label: string; note?: (o: O) => string })[];
+  /** How the trip ends, tested against the last point of the path */
+  exits: (RideBox & { label: string; note: (o: O) => string })[];
+}
+
 export interface Bindings<I, O> {
+  /** First-person trip through the airflow field */
+  ride?: RideBinding<O>;
   /** Normalizers for GLB `drives` names → 0–1. Missing entries read `outputs[drives]` directly. */
   drives?: Partial<Record<string, (o: O) => number>>;
   /** Flow stream id (`flow_<id>_NN` in the GLB) → rate + temperature. The fallback when there's no `field`. */

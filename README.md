@@ -150,6 +150,14 @@ The air in the 3D view follows a velocity field solved on the unit's real geomet
 
 Water streams run along the pipe centerlines. Because the insulated pipes are opaque, the browser slides each water streak along the view ray to the pipe's near surface. That changes only depth, so streaks stay inside the pipe's outline.
 
+**Be the air** (`src/lab/scene/ride.ts`, `RideCamera.tsx`, `shell/Ride.tsx`): a first-person trip through the unit, started with the display's "Be the air" key or `A`.
+- A trip is one real path: a seed in an inlet, carried through the solved field with the particles' wall-aware stepping (no turbulence), resampled every 4 cm and lightly smoothed.
+- Where you end up is drawn honestly from anywhere across the inlet, so economizer return air leaves by the relief damper as often as the model says (within sampling noise at every baked position). The camera then rides a path nearer the middle of the inlet with the same fate.
+- The camera moves at about a third of real air speed (faster at 4× and 16×) and looks a little way ahead.
+- A readout names each stretch, from the module's `bindings.ride` zones: boxes in Blender coordinates, with notes built from live outputs. It also shows your temperature, which follows the same stage planes as the particles, plus your speed and progress.
+- The trip ends on a card for the exit box it left through.
+- Riding hides labels and the cutaway, and everything comes back on leave (Esc). It's off with reduced motion and in compact embeds.
+
 Why not Mantaflow (Blender's gas solver)? It's built for smoke plumes and won't hold a prescribed airflow through a duct network. Its inflows are tied to smoke emission, and its cache drops velocity wherever there's no smoke.
 
 ```bash

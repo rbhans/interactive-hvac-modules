@@ -8,6 +8,7 @@ import { HandIcon, Led } from "../controls/primitives";
 import { heatCss, heatGradient } from "../heat";
 import type { PointStatus } from "../types";
 import { useDarkScheme, useInView, usePageVisible, useReducedMotion } from "./hooks";
+import { RideButton, RideHud } from "./Ride";
 import { useRuntime, type ViewState } from "./runtime";
 
 const LabCanvas = dynamic(() => import("../scene/LabCanvas"), { ssr: false });
@@ -94,7 +95,7 @@ const VIEW_KEYS: { k: keyof ViewState; label: string; key: string }[] = [
   { k: "labels", label: "Labels", key: "L" },
 ];
 
-function ViewKeys() {
+function ViewKeys({ ride }: { ride: boolean }) {
   const { view, toggleView, resetCamera } = useRuntime(useShallow((s) => ({ view: s.view, toggleView: s.toggleView, resetCamera: s.resetCamera })));
   return (
     <div className="flex flex-wrap gap-1.5" role="group" aria-label="View">
@@ -109,6 +110,7 @@ function ViewKeys() {
           <path d="M6 1.5 1.5 5.2V10.5h3.2V7.6h2.6v2.9h3.2V5.2z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
         </svg>
       </button>
+      {ride && <RideButton />}
     </div>
   );
 }
@@ -185,6 +187,9 @@ export const Display = memo(function Display({ compact, className }: { compact?:
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [snap, setSnap] = useState<{ url: string; fade: boolean } | null>(null);
+  const riding = useRuntime((s) => s.ride !== null);
+  // first person needs motion and the full-size display
+  const canRide = useRuntime((s) => Boolean(s.mod.bindings.ride && s.mod.bindings.field)) && !compact && !reduced;
 
   const onSnapshot = useCallback((url: string) => setSnap({ url, fade: false }), []);
   const onReady = useCallback(() => setLoaded(true), []);
@@ -196,7 +201,15 @@ export const Display = memo(function Display({ compact, className }: { compact?:
   }, [snap]);
 
   return (
-    <div ref={ref} className={cn("stage relative isolate overflow-hidden", className)} role="group" aria-roledescription="3D equipment view" aria-label="Equipment view">
+    <div
+      ref={ref}
+      data-riding={riding}
+      // a phone's landscape stage is too short to ride through: stand it up while riding
+      className={cn("stage relative isolate overflow-hidden transition-[aspect-ratio] duration-500", className, "max-sm:data-[riding=true]:aspect-[4/5]")}
+      role="group"
+      aria-roledescription="3D equipment view"
+      aria-label="Equipment view"
+    >
       <WeatherTint />
       <div className="absolute inset-0">
         <LabCanvas active={inView && pageVisible} reduced={reduced} dark={dark} compact={compact} onSnapshot={onSnapshot} onReady={onReady} onError={onError} />
@@ -231,16 +244,22 @@ export const Display = memo(function Display({ compact, className }: { compact?:
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3 [&>*]:pointer-events-auto">
-        <StatusChips />
-        {!compact && <Transport />}
-      </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-3 [&>*]:pointer-events-auto">
-        <ViewKeys />
-        <div className="max-[420px]:hidden">
-          <HeatLegend />
-        </div>
-      </div>
+      {riding ? (
+        <RideHud />
+      ) : (
+        <>
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3 [&>*]:pointer-events-auto">
+            <StatusChips />
+            {!compact && <Transport />}
+          </div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-3 [&>*]:pointer-events-auto">
+            <ViewKeys ride={canRide} />
+            <div className="max-[420px]:hidden">
+              <HeatLegend />
+            </div>
+          </div>
+        </>
+      )}
       <SceneDescription />
     </div>
   );

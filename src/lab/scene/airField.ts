@@ -28,7 +28,7 @@ export interface AirField {
   stages: { id: string; x: number }[];
 }
 
-interface FieldMeta {
+export interface FieldMeta {
   version: number;
   layout: string;
   n: [number, number, number];
@@ -77,40 +77,44 @@ export function loadAirField(url: string): Promise<AirField> {
         if (!r.ok) throw new Error(`${url}: ${r.status}`);
         return r.json();
       });
-      if (meta.layout !== "staggered") throw new Error(`${url}: unsupported layout ${meta.layout}`);
       const dataUrl = new URL(meta.data, new URL(url, window.location.href)).toString();
       const raw = await fetch(dataUrl).then((r) => {
         if (!r.ok) throw new Error(`${dataUrl}: ${r.status}`);
         return r.arrayBuffer();
       });
-      const q = new Int8Array(await inflate(raw));
-      const [nx, ny, nz] = meta.n;
-      // a short or mismatched file would decode to NaN velocities and freeze every particle; fail so the fallback streaks run
-      for (const s of meta.states) {
-        const spans: [number, number][] = [
-          [s.ux, (nx + 1) * ny * nz],
-          [s.uy, nx * (ny + 1) * nz],
-          [s.uz, nx * ny * (nz + 1)],
-        ];
-        for (const [offset, count] of spans) {
-          if (!(offset >= 0) || offset + count > q.length) throw new Error(`${dataUrl}: ${q.length} bytes, too short for state ${s.pos}`);
-        }
-      }
-      const states = meta.states
-        .map((s) => {
-          const x = decode(q, s.ux, (nx + 1) * ny * nz, s.vmax);
-          const y = decode(q, s.uy, nx * (ny + 1) * nz, s.vmax);
-          const z = decode(q, s.uz, nx * ny * (nz + 1), s.vmax);
-          return { pos: s.pos, ux: x.u, uy: y.u, uz: z.u, wx: x.wall, wy: y.wall, wz: z.wall };
-        })
-        .sort((a, b) => a.pos - b.pos);
-      const stages = (meta.stages ?? (meta.mixPlaneX !== undefined ? [{ id: "mix", x: meta.mixPlaneX }] : [])).slice().sort((a, b) => a.x - b.x);
-      return { n: meta.n, lo: meta.lo, h: meta.h, states, emit: meta.emit, stages };
+      return buildAirField(meta, new Int8Array(await inflate(raw)), dataUrl);
     })();
     cache.set(url, p);
     p.catch(() => cache.delete(url));
   }
   return p;
+}
+
+/** Decode a field file's header and inflated data. Kept apart from the fetching so tests can read the baked files. */
+export function buildAirField(meta: FieldMeta, q: Int8Array, label = "flow data"): AirField {
+  if (meta.layout !== "staggered") throw new Error(`${label}: unsupported layout ${meta.layout}`);
+  const [nx, ny, nz] = meta.n;
+  // a short or mismatched file would decode to NaN velocities and freeze every particle; fail so the fallback streaks run
+  for (const s of meta.states) {
+    const spans: [number, number][] = [
+      [s.ux, (nx + 1) * ny * nz],
+      [s.uy, nx * (ny + 1) * nz],
+      [s.uz, nx * ny * (nz + 1)],
+    ];
+    for (const [offset, count] of spans) {
+      if (!(offset >= 0) || offset + count > q.length) throw new Error(`${label}: ${q.length} bytes, too short for state ${s.pos}`);
+    }
+  }
+  const states = meta.states
+    .map((s) => {
+      const x = decode(q, s.ux, (nx + 1) * ny * nz, s.vmax);
+      const y = decode(q, s.uy, nx * (ny + 1) * nz, s.vmax);
+      const z = decode(q, s.uz, nx * ny * (nz + 1), s.vmax);
+      return { pos: s.pos, ux: x.u, uy: y.u, uz: z.u, wx: x.wall, wy: y.wall, wz: z.wall };
+    })
+    .sort((a, b) => a.pos - b.pos);
+  const stages = (meta.stages ?? (meta.mixPlaneX !== undefined ? [{ id: "mix", x: meta.mixPlaneX }] : [])).slice().sort((a, b) => a.x - b.x);
+  return { n: meta.n, lo: meta.lo, h: meta.h, states, emit: meta.emit, stages };
 }
 
 const clampi = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
