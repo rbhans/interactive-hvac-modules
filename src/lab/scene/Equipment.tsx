@@ -7,7 +7,11 @@ import * as THREE from "three";
 import { heatLinear } from "../heat";
 import { useRuntimeStore } from "../shell/runtime";
 import { indexScene, type HighlightMesh, type SceneIndex } from "./sceneIndex";
+import { INK_LAYER, OCCLUDE_LAYER } from "./InkEdges";
 import { addInkHulls, toonify } from "./toon";
+
+/** Parts too fine for inner lines: they'd ink into a solid smear. They still hide what's behind them. */
+const NO_INNER_LINES = /(_fins|_tubes|filter_media|fan_wheel|_bends)/;
 
 const X = new THREE.Vector3(1, 0, 0);
 const FAULT = new THREE.Color("#f0a000");
@@ -32,7 +36,21 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
     const prefixes = [...(mod.bindings.highlights ?? []).flatMap((h) => h.parts), ...(mod.bindings.tints ?? []).flatMap((t) => t.parts)];
     const idx = indexScene(scene, prefixes);
     // cutaway panels get their own outline material so it can fade with the ghost
-    const ink = addInkHulls(scene, { ownHull: new Set(idx.ghosts.map((g) => g.mesh)) });
+    const ink = addInkHulls(scene, {
+      ownHull: new Set(idx.ghosts.map((g) => g.mesh)),
+      // a fin pack is dozens of plates a few pixels apart: outlining each one turns the coil gray
+      // and buries its temperature color. The casing around it keeps its outline.
+      skip: (m) => /_fins$/.test(m.name) || /_fins$/.test(m.parent?.name ?? ""),
+    });
+    // inner ink lines (InkEdges): which surfaces get them
+    scene.traverse((o) => {
+      if (!(o instanceof THREE.Mesh) || o.userData.isHull) return;
+      const named = (x: THREE.Object3D | null): boolean => !!x && (NO_INNER_LINES.test(x.name) || named(x.parent));
+      o.layers.enable(named(o) ? OCCLUDE_LAYER : INK_LAYER);
+      // the key light's shadows
+      o.castShadow = true;
+      o.receiveShadow = true;
+    });
     return { idx, ink };
   }, [gltf, mod]);
 
@@ -158,6 +176,14 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
       gm.material.depthWrite = g < 0.5;
       (gm.edges.material as THREE.LineBasicMaterial).opacity = 0.55 * g;
       gm.edges.visible = g > 0.01;
+      // a see-through panel shouldn't hide the lines behind it, or draw its own
+      if (g > 0.5) {
+        gm.mesh.layers.disable(INK_LAYER);
+        gm.mesh.layers.disable(OCCLUDE_LAYER);
+      } else gm.mesh.layers.enable(INK_LAYER);
+      // nor cast a shadow into the unit; riding through it, the front panel is solid but still lets the
+      // key light in, so the inside has light and shade instead of all being the darkest hatch
+      gm.mesh.castShadow = g < 0.5 && !s.ride;
       const hull = ink.own.get(gm.mesh);
       if (hull) {
         (hull.material as THREE.ShaderMaterial).uniforms.opacity.value = 1 - g;
@@ -169,7 +195,8 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
     for (const { rule, meshes } of tints) {
       const on = rule.when ? rule.when(o) : true;
       const [r, g, b] = heatLinear(rule.tempF(o));
-      const k = on ? (rule.amount ?? 0.8) : 0;
+      const amount = typeof rule.amount === "function" ? rule.amount(o) : (rule.amount ?? 0.8);
+      const k = on ? Math.min(1, Math.max(0, amount)) : 0;
       for (const h of meshes) {
         h.material.color.setRGB(
           h.baseColor.r + (r - h.baseColor.r) * k,

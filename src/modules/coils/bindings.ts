@@ -34,8 +34,20 @@ export const bindings: Bindings<CoilInputs, CoilOutputs> = {
     { parts: ["chw_return_pipe"], tempF: (o) => o.chwLwt, amount: 0.5 },
     { parts: ["hw_supply_pipe"], tempF: (o) => o.hwEwt, amount: 0.5 },
     { parts: ["hw_return_pipe"], tempF: (o) => o.hwLwt, amount: 0.5 },
-    { parts: ["chw_coil_fins"], tempF: (o) => (o.chwEwt + o.chwLwt) / 2, amount: 0.4, when: (o) => o.chwFlow > 0.01 },
-    { parts: ["hw_coil_fins"], tempF: (o) => (o.hwEwt + o.hwLwt) / 2, amount: 0.35, when: (o) => o.hwFlow > 0.01 },
+    // a coil's fins take on its water's color as hard as the coil is working: faint on a trickle, strong
+    // at full output. The color leans toward the entering water, which is what the leaving-air face meets.
+    {
+      parts: ["chw_coil_fins"],
+      tempF: (o) => o.chwEwt + 0.35 * (o.chwLwt - o.chwEwt),
+      amount: (o) => 0.2 + 0.65 * Math.min(1, Math.max(0, o.chwDrop / 20)),
+      when: (o) => o.chwFlow > 0.01,
+    },
+    {
+      parts: ["hw_coil_fins"],
+      tempF: (o) => o.hwEwt + 0.35 * (o.hwLwt - o.hwEwt),
+      amount: (o) => 0.2 + 0.65 * Math.min(1, Math.max(0, o.hwRise / 30)),
+      when: (o) => o.hwFlow > 0.01,
+    },
   ],
 
   condensate: { from: ["drip_a", "drip_b"], to: "drip_pan", rate: (o) => o.condensate },

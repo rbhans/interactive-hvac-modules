@@ -67,8 +67,8 @@ export interface Tint<O> {
   /** Node names or prefixes */
   parts: string[];
   tempF: (o: O) => number;
-  /** 0–1 blend from the part's own color toward the heat color */
-  amount?: number;
+  /** 0–1 blend from the part's own color toward the heat color; a function lets it follow the model */
+  amount?: number | ((o: O) => number);
   /** Only tint while this returns true; otherwise the part keeps its own color */
   when?: (o: O) => boolean;
 }

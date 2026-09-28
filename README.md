@@ -186,6 +186,11 @@ Claude runs the same `blender/build.py` inside a live Blender session over MCP (
 - **Forms:** the chassis follows Braun (hairlines, round nudge keys, a hi-fi fader, a slide switch for Auto/Manual). The controls follow Teenage Engineering (numbered square keys, colored encoders, a 16-step priority array, mono micro-labels).
 - **Colors:** taken from sael.net's neutral palette. Dark is the house theme: `data-theme="dark"` is set on `<html>`. The light tokens still exist behind `data-theme="light"`.
 - **3D:** light cel shading. Toon materials use four soft lighting bands, and each part gets a constant-width "inverted hull" ink outline (`src/lab/scene/toon.ts`). Cutaway panels fade their outlines along with the panel.
+- **Drawn detail:** it only goes where it has a cause, following how comic-style games (Borderlands) and Moebius-style renderers place it.
+  - Hatching appears only inside the key light's real cast shadows. It's screen-space pen strokes with a slight wobble: single strokes in shadow, and a cross-stroke only where neither light reaches.
+  - Inner ink lines (`InkEdges.tsx`) come from a normal-buffer edge pass. They're heavier in crevices than on outside edges, with a slight hand-drawn waver. Fin packs, filter pleats and the fan wheel are left out.
+  - Seams, rivets and hard metal glints are set per material. A soft paint grain and a little grime near the deck finish it.
+  - All of it is tunable through `DETAIL` in `toon.ts` (live as `window.__detail` in dev).
 
 Status colors are consistent everywhere:
 

@@ -12,6 +12,7 @@ import { AirFlow } from "./AirFlow";
 import { Drips } from "./Drips";
 import { Equipment } from "./Equipment";
 import { FlowField } from "./FlowField";
+import { InkEdges } from "./InkEdges";
 import { RideCamera } from "./RideCamera";
 import type { SceneIndex } from "./sceneIndex";
 
@@ -57,7 +58,7 @@ function sceneKey(mod: AnyLabModule, o: Outputs, view: object) {
       Object.values(b.field.tempF).map((t) => temp(t(o))),
       Object.values(b.field.stages).map((t) => temp(t(o))),
     ],
-    (b.tints ?? []).map((t) => [temp(t.tempF(o)), t.when ? t.when(o) : true]),
+    (b.tints ?? []).map((t) => [temp(t.tempF(o)), typeof t.amount === "function" ? frac(t.amount(o)) : 0, t.when ? t.when(o) : true]),
     (b.highlights ?? []).map((h) => h.when(o)),
     b.condensate && frac(b.condensate.rate(o)),
   ]);
@@ -272,6 +273,8 @@ export default function LabCanvas({
   return (
     <Canvas
       frameloop="demand"
+      // the key light's cast shadows are where the hand-drawn hatching goes
+      shadows="percentage"
       dpr={[1, compact ? 1.5 : 2]}
       camera={{ position: mod.camera.position, fov: mod.camera.fov ?? 35, near: 0.1, far: 60 }}
       gl={{ antialias: true, alpha: true, preserveDrawingBuffer: reduced, powerPreference: "high-performance" }}
@@ -285,7 +288,20 @@ export default function LabCanvas({
       <RuntimeContext.Provider value={store}>
         {/* transparent canvas: the stage gradient behind it is CSS, so it follows the page theme */}
         <hemisphereLight args={["#f4f6fb", dark ? "#23252b" : "#8d9097", dark ? 0.6 : 0.75]} />
-        <directionalLight position={[-4, 7, 6]} intensity={2.1} />
+        <directionalLight
+          position={[-4, 7, 6]}
+          intensity={2.1}
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-bias={-0.0004}
+          shadow-normalBias={0.025}
+          shadow-camera-left={-4.5}
+          shadow-camera-right={4.5}
+          shadow-camera-top={4.5}
+          shadow-camera-bottom={-4.5}
+          shadow-camera-near={1}
+          shadow-camera-far={22}
+        />
         <directionalLight position={[6, 3, -5]} intensity={0.9} color="#cdd6ff" />
         <Environment resolution={128} frames={1}>
           <Lightformer form="rect" intensity={2.2} position={[0, 6, 0]} rotation-x={Math.PI / 2} scale={[10, 4, 1]} />
@@ -296,6 +312,8 @@ export default function LabCanvas({
         <AssetBoundary onError={(e) => onError?.(e)}>
         <Suspense fallback={null}>
           <Equipment url={mod.glb} reduced={reduced} onReady={handleReady} />
+          {/* after Equipment, so its frame callback sees this frame's part positions */}
+          {idx && <InkEdges />}
           {idx &&
             (mod.bindings.field ? (
               <>
