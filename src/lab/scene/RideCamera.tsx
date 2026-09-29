@@ -7,13 +7,18 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useRuntime, useRuntimeStore } from "../shell/runtime";
 import type { FieldBinding, Outputs, RideBinding } from "../types";
 import { loadAirField, type AirField } from "./airField";
-import { planTrip, tripIndex, tripPoint, tripTemp, type Trip } from "./ride";
+import { planTrip, tripIndex, tripPoint, tripTemp, TRIP_STEP, type Trip } from "./ride";
 
 const FOV = 72;
 const LOOK_AHEAD = 0.55; // m along the path
 const RATE = { 1: 1, 4: 1.8, 16: 3 } as const; // the transport's speed keys also hurry the ride
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 const FPM = 196.85; // ft/min per m/s
+const MIN_STRETCH = 2.2; // s: the least time any named stretch of the trip takes, so its note can be read
+
+/** The field's speed scale right now (see FieldBinding.speed) */
+const speedScale = (mod: { bindings: { field?: FieldBinding<Outputs> } }, o: Outputs) =>
+  Math.min(2, Math.max(0.1, mod.bindings.field?.speed?.(o) ?? 1));
 
 /**
  * "Be the air": while a ride is on, the camera follows one traced path through the airflow field,
@@ -27,6 +32,19 @@ export function RideCamera({ active }: { active: boolean }) {
   const invalidate = useThree((s) => s.invalidate);
   const [plan, setPlan] = useState<{ trip: Trip; field: AirField } | null>(null);
   const play = useRef({ s: 0, v: 0, hud: 0, done: false, fresh: true });
+  // length of the stretch (same zone) each path point sits in, m
+  const runs = useMemo(() => {
+    if (!plan) return new Float32Array(0);
+    const { zone, count } = plan.trip;
+    const r = new Float32Array(count);
+    for (let a = 0; a < count; ) {
+      let b = a;
+      while (b + 1 < count && zone[b + 1] === zone[a]) b++;
+      r.fill((b - a + 1) * TRIP_STEP, a, b + 1);
+      a = b + 1;
+    }
+    return r;
+  }, [plan]);
   const tmp = useMemo(
     () => ({
       a: new Float32Array(3),
@@ -95,9 +113,12 @@ export function RideCamera({ active }: { active: boolean }) {
     // move: a scaled version of the real air speed, eased so jets through damper gaps don't jolt
     const moving = st.running && !P.done;
     if (moving) {
-      const real = trip.speed[tripIndex(trip, P.s)];
-      // about a third of real speed: slow enough to read each stretch, still quick through the fan
-      const target = Math.min(1.3, Math.max(0.28, 0.32 * real)) * RATE[st.speed];
+      const at = tripIndex(trip, P.s);
+      const real = trip.speed[at] * speedScale(st.mod, st.outputs);
+      // about a third of real speed: slow enough to read each stretch, still quick through the fan,
+      // and no stretch shorter than ~2 s, so short fast parts (a flow sensor, a damper gap) get read
+      const pace = Math.min(0.9, Math.max(0.28, 0.32 * real), Math.max(0.05, runs[at] / MIN_STRETCH));
+      const target = pace * RATE[st.speed];
       P.v += (target - P.v) * (1 - Math.exp(-dt / 0.35));
       P.s = Math.min(trip.length, P.s + P.v * dt);
       if (P.s >= trip.length - 1e-3) P.done = true;
@@ -146,7 +167,7 @@ export function RideCamera({ active }: { active: boolean }) {
         zone: zone?.label ?? start.label,
         note: zone?.note?.(o) ?? "",
         tempF,
-        fpm: trip.speed[i] * FPM,
+        fpm: trip.speed[i] * speedScale(mod, o) * FPM,
         progress: trip.length > 0 ? P.s / trip.length : 1,
         done: P.done
           ? exit

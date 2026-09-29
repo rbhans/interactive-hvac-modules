@@ -1,0 +1,49 @@
+<CardSection id="basics" title="The basics">
+
+An <Term id="ahu">air handler</Term> makes cool supply air and pushes it into a big duct over the ceiling. Every room, or group of rooms, takes its share through its own <Term id="vav">VAV box</Term>: a small metal box in the ceiling with a <Term id="damper">damper</Term> that opens to let more cool air in and closes to let less.
+
+The fan keeps the duct at a <Term id="static">static pressure</Term> of about half an inch to two <Term id="inwc">inches of water</Term>. That pressure is what pushes air through each box. Past the damper, the air runs through a short duct and flexible ducts down to the diffusers in the ceiling, which fling it sideways so it mixes into the room. How much air is measured in <Term id="cfm">cfm</Term>.
+
+The box runs <Term id="cascade">two loops</Term>. The room loop watches the thermostat and decides how much air the room needs, between a <Term id="minflow">minimum</Term> and a maximum. The airflow loop moves the damper until the box delivers that much.
+
+In the 3D view, streaks are air and their color is temperature: blue is cold supply air, white is room temperature. The panel on the right is what an operator would see.
+
+</CardSection>
+
+<CardSection id="independent" title="Measuring the air">
+
+Across the box's inlet sits a <Term id="flowcross">flow cross</Term>: a couple of tubes with holes facing the moving air. They pick up its <Term id="vp">velocity pressure</Term>, a tiny pressure a <Term id="transducer">transducer</Term> in the controller turns into a number, and from that, an airflow. A box that does this is <Term id="independent">pressure-independent</Term>: whatever the duct pressure does, the airflow loop moves the damper to hold the airflow it was asked for.
+
+Why it matters: the duct pressure at a box never sits still. Every other box on the same duct is opening and closing, and the fan is chasing all of them. Load **Duct pressure swings**: the pressure here swings ±0.35 in., and this box's airflow only wobbles about 4 %.
+
+Now load **Old pressure-dependent box**. Same swings, but no airflow sensor: the thermostat sets the damper position directly. A <Term id="dependent">pressure-dependent</Term> box turns every pressure swing into an airflow swing, here about ±27 %, and the room only finds out once it's already too warm or too cold.
+
+</CardSection>
+
+<CardSection id="starved" title="When there isn't enough pressure">
+
+"Pressure-independent" has a limit: the box can only throttle. It can hold its airflow down against too much pressure, but it can't make more air than the pressure behind it can push through a wide-open damper. This box needs about 0.35 in. to make its full 1000 cfm.
+
+Load **Starved box**. Only 0.18 in. reaches it. The damper goes wide open, the room keeps asking for more, and the airflow stalls well short, so the room drifts warm. A <Term id="starved">starved</Term> box wide open and short of airflow is the clearest signal a building has that the duct pressure is too low for somebody.
+
+That's how <Term id="reset">static pressure reset</Term> works (the next module): the fan turns the pressure down until one box starts asking for more, then nudges it back up. Boxes wide open are the requests.
+
+</CardSection>
+
+<CardSection id="blind" title="The low-flow blind spot">
+
+Velocity pressure grows with the square of the airflow. Halve the air and the signal drops to a quarter. At this box's full 1000 cfm the flow cross gives about 0.48 in.; at its 150 cfm minimum, about 0.011 in., roughly the pressure of three sheets of paper lying flat.
+
+So the transducer's small errors matter most exactly where the box spends most of its time. The bottom chart on the bench shows how far a drift of just 0.005 in. throws the reading: under 1 % at full flow, about 20 % at minimum. Box makers and design guides put the lowest airflow a box can hold reliably at a signal of about 0.004 in., even with a good controller.
+
+Load **Drifted sensor at minimum**. The box reads a perfect 150 cfm; it's really moving about 100. Nothing is in alarm, the room is comfortable, and a third of its <Term id="minflow">fresh air</Term> is missing. Checking minimum airflows with a real airflow hood is how these get caught.
+
+</CardSection>
+
+<CardSection id="too-much" title="Too much pressure">
+
+The opposite problem is quieter and costs more. Load **Too much static**. With 2.5 in. behind it, the box still holds its airflow; that's the job. But the damper sits under 20 % open and burns off more than 2.4 in. of pressure the fan paid to make, and a box throttled that hard whistles.
+
+Every box burns off whatever pressure it doesn't need. Run the duct at 2.5 in. when the neediest box only needs 1, and every box on the system is throttling hard, all the time. Watch the **Duct pressure the damper burns off** reading as you drag the pressure down: the airflow stays put and the waste falls. That's the energy <Term id="reset">static pressure reset</Term> goes after.
+
+</CardSection>

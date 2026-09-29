@@ -1,0 +1,86 @@
+{
+ "version": 2,
+ "axes": "blender",
+ "layout": "staggered",
+ "data": "flow.bin.gz",
+ "note": "Potential-flow face velocities (m/s) through the VAV branch, box, discharge and drops at design airflow, at several damper positions. Per state: ux (nx+1, ny, nz), uy (nx, ny+1, nz), uz (nx, ny, nz+1), each x fastest. int8, sqrt-companded: v = sign(q) * (q/127)^2 * vmax; -128 marks a wall face.",
+ "lo": [
+  -1.4,
+  -0.325,
+  2.76
+ ],
+ "h": 0.025,
+ "n": [
+  146,
+  26,
+  28
+ ],
+ "supply": 0.471947,
+ "states": [
+  {
+   "pos": 0.15,
+   "vmax": 10.838938168870282,
+   "flows": {
+    "supply": 0.471947
+   },
+   "ux": 0,
+   "uy": 107016,
+   "uz": 217392
+  },
+  {
+   "pos": 0.3,
+   "vmax": 10.962158277773186,
+   "flows": {
+    "supply": 0.471947
+   },
+   "ux": 327476,
+   "uy": 434492,
+   "uz": 544868
+  },
+  {
+   "pos": 0.5,
+   "vmax": 10.920440910862407,
+   "flows": {
+    "supply": 0.471947
+   },
+   "ux": 654952,
+   "uy": 761968,
+   "uz": 872344
+  },
+  {
+   "pos": 0.75,
+   "vmax": 11.249352188112784,
+   "flows": {
+    "supply": 0.471947
+   },
+   "ux": 982428,
+   "uy": 1089444,
+   "uz": 1199820
+  },
+  {
+   "pos": 1.0,
+   "vmax": 11.862875593971749,
+   "flows": {
+    "supply": 0.471947
+   },
+   "ux": 1309904,
+   "uy": 1416920,
+   "uz": 1527296
+  }
+ ],
+ "emit": {
+  "air": {
+   "lo": [
+    -1.39,
+    -0.081,
+    3.119
+   ],
+   "hi": [
+    -1.35,
+    0.081,
+    3.281
+   ]
+  }
+ },
+ "stages": []
+}

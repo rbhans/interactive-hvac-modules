@@ -103,7 +103,15 @@ export function TrendChart({ pens, window: win, t, series, now }: TrendChartProp
             {pens.map((p) => {
               const vals = series[p.id] ?? [];
               if (vals.length < 2) return null;
-              const d = vals.map((v, k) => `${k ? "L" : "M"}${x(t[k]).toFixed(1)} ${y(v, p.axis).toFixed(1)}`).join("");
+              // a value that doesn't exist (a point this equipment doesn't have right now) breaks the line
+              let d = "";
+              let down = false;
+              vals.forEach((v, k) => {
+                if (!Number.isFinite(v)) return void (down = false);
+                d += `${down ? "L" : "M"}${x(t[k]).toFixed(1)} ${y(v, p.axis).toFixed(1)}`;
+                down = true;
+              });
+              if (!d) return null;
               return (
                 <path
                   key={p.id}

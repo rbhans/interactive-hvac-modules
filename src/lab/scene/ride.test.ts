@@ -4,6 +4,7 @@ import zlib from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { bindings as coils } from "@/modules/coils/bindings";
 import { bindings as economizer } from "@/modules/economizer/bindings";
+import { bindings as vav } from "@/modules/vav/bindings";
 import type { Outputs, RideBinding } from "../types";
 import { buildAirField, type FieldMeta } from "./airField";
 import { planTrip, tripTemp, TRIP_STEP } from "./ride";
@@ -94,5 +95,24 @@ describe("be the air: economizer", () => {
     const barely = reliefShare(0.25);
     expect(open).toBeGreaterThan(barely);
     expect(open).toBeGreaterThan(0.3);
+  });
+});
+
+describe("be the air: vav", () => {
+  const f = bakedField("vav");
+  const ride = vav.ride as RideBinding<Outputs>;
+
+  it("rides from the branch past the flow sensor and damper, through the box, and out a diffuser into the room", () => {
+    for (const pos of [0.3, 0.6, 1]) {
+      for (let k = 0; k < 4; k++) {
+        const trip = planTrip(f, pos, ride, "supply", rng(k + 21))!;
+        expect(trip).not.toBeNull();
+        expect(ride.exits[trip.exit]?.label).toBe("Into the room");
+        const seq = zonesOf(ride, trip.zone);
+        const order = ["Branch duct", "Flow sensor", "Damper", "VAV box", "Discharge duct", "Flex drop"].map((z) => seq.indexOf(z));
+        expect(order.every((i) => i >= 0)).toBe(true);
+        expect([...order].sort((a, b) => a - b)).toEqual(order);
+      }
+    }
   });
 });

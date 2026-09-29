@@ -162,8 +162,9 @@ def cell_velocity(phi, faces, h, boundary_vel, links=None):
 def face_velocities(phi, faces, h, ports, links=None):
     """Velocities on cell faces, the solver's native quantity, plus which faces are walls.
 
-    ports: {"x-": (vel, open), "x+": (vel, open)} with (ny, nz) arrays giving the prescribed
-    velocity along +x and which boundary faces are openings. Every other boundary face is a wall.
+    ports: {"x-": (vel, open), "z-": (vel, open), ...}: for any boundary face, arrays over that face
+    giving the prescribed velocity along +axis and which of its faces are openings. Every other
+    boundary face is a wall.
     links: optional per-axis arrays (grid shape) of prescribed velocities along +axis on the +face
     of each cell, NaN elsewhere. Those faces are closed to the solve (their flow enters it as a
     source/sink pair, see link_faces) but open to particles, at that velocity.
@@ -186,12 +187,13 @@ def face_velocities(phi, faces, h, ports, links=None):
             sel = ~np.isnan(lk)
             u[ax][tuple(inner)][sel] = lk[sel]
             b[ax][tuple(inner)][sel] = False
-    vel, open_ = ports["x-"]
-    u[0][0] = vel
-    b[0][0] = ~open_
-    vel, open_ = ports["x+"]
-    u[0][-1] = vel
-    b[0][-1] = ~open_
+    # openings on any boundary face: "x-", "x+", "y-", "y+", "z-", "z+", each (vel along +axis, open)
+    for key, (vel, open_) in ports.items():
+        ax = "xyz".index(key[0])
+        sl = [slice(None)] * 3
+        sl[ax] = 0 if key[1] == "-" else -1
+        u[ax][tuple(sl)] = vel
+        b[ax][tuple(sl)] = ~open_
     return u, b
 
 
@@ -371,7 +373,7 @@ def encode(u, walls, pct=99.5, vmin=5.5):
     vmax is the `pct` percentile of the moving faces' speeds, but at least `vmin` m/s. The few
     faces above it (the fan-inlet jet) are clipped to ±vmax: the runtime caps on-screen speed
     well below that anyway, and a vmax set by the jet would leave every duct and port with a
-    coarse, biased step. The two x boundary planes (the openings) are quantized with error
+    coarse, biased step. Boundary planes with openings in them are quantized with error
     diffusion so each opening's total flow is kept. Decode: v = sign(q) * (q/127)^2 * vmax.
     Returns (arrays, vmax, fraction of moving faces clipped)."""
     speeds = np.concatenate([np.abs(a[~w]) for a, w in zip(u, walls)])
@@ -380,9 +382,13 @@ def encode(u, walls, pct=99.5, vmin=5.5):
     out = []
     for ax, (a, w) in enumerate(zip(u, walls)):
         q = _quantize(a, vmax)
-        if ax == 0:
-            for i in (0, -1):
-                q[i] = _diffused(a[i], w[i], vmax)
+        # every boundary plane with an opening in it (not only the x ends): each opening keeps its total flow
+        for i in (0, -1):
+            sl = [slice(None)] * 3
+            sl[ax] = i
+            sl = tuple(sl)
+            if (~w[sl]).any():
+                q[sl] = _diffused(a[sl], w[sl], vmax)
         q = q.astype(np.int8)
         q[w] = BLOCKED
         out.append(q.transpose(2, 1, 0).copy())

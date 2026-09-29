@@ -4,6 +4,7 @@ Small interactive modules. Each one pairs a 3D equipment scene with BAS-style co
 
 - **01 Economizer:** *damper position isn't outdoor-air percentage.*
 - **02 Coils & valves:** *half the water does most of the work.*
+- **03 VAV box:** *pressure-independent doesn't mean pressure-proof.*
 
 Built on Next.js 15, React 19, TypeScript, Tailwind v4, React Three Fiber, and drei. `components.json` is present, so shadcn components drop in if you need them.
 
@@ -118,6 +119,25 @@ Where it simplifies:
 - The plant holds supply water temperature and differential pressure constant. Valve flow doesn't interact between the two coils or with other loads.
 - There's no freeze protection on the heating coil and no low-limit or mixed-air interaction with the economizer upstream.
 - Only water coils are modeled. The `COILS` table is where DX, gas and electric heat would go.
+
+## VAV box model: what's real and what's simplified
+
+What the model does:
+
+- **The box:** a 10" single-duct, cooling-only box. Airflow is set by inlet static pressure pushing through the butterfly damper and the discharge side: `Q = 1000·√(P / (0.1/f(x)² + 0.25))` cfm, with the damper and casing at 0.1 in. and the discharge, flex and diffusers at 0.25 in. (both at the 1000 cfm design flow). Wide open it needs about 0.35 in. to make full flow. The damper's inherent curve is a power law (exponent 2.5, 2 % leakage), like a single blade.
+- **Flow sensor:** an amplifying flow cross (gain 2.3) on the 10" inlet reads about 0.48 in. at 1000 cfm and 0.011 in. at 150 cfm. Airflow = K·√ΔP with K ≈ 1440. The transducer has a little deterministic noise (±0.001 in.); the faults add a zero drift or a gain error.
+- **Control:** a room PI loop (8 °F proportional band) sets an airflow setpoint between the minimum and the maximum, and an airflow PI loop drives a floating actuator. The actuator has a small deadband and overdrives to the stops at 0 and 100 %. Pressure-dependent mode skips the airflow loop: the room loop sets the damper position directly. Operator override writes the damper at priority 8.
+- **Room:** one lumped air-and-furniture mass with a heat gain and a thermostat lag. The supply air temperature is an input.
+- **Duct pressure swings:** a slow sine (40 s) around the set static, standing in for the other boxes on the duct opening and closing.
+- **Starved flag:** the actuator ≥ 95 % open and the measured airflow under 92 % of setpoint for 3 s. That's the kind of condition a trim-and-respond static-pressure reset counts as a request.
+
+Where it simplifies:
+
+- Time runs about 7× faster than real, like the other modules.
+- Cooling only: no reheat coil, so a cool room with little heat sits at minimum airflow and runs cold.
+- The duct pressure at the box doesn't respond to this box's own airflow (a real duct would sag a little as this box opens).
+- No sound model. "A real box would whistle" in the Too much static preset is the only mention.
+- The room air and the supply main are drawn with path streams; only the branch, box, discharge and drops are a solved field.
 
 ## Airflow
 

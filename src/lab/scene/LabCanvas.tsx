@@ -303,6 +303,7 @@ export default function LabCanvas({
           shadow-camera-far={22}
         />
         <directionalLight position={[6, 3, -5]} intensity={0.9} color="#cdd6ff" />
+        {mod.lights?.map((l, k) => <directionalLight key={k} position={l.position} intensity={l.intensity} color={l.color ?? "#ffffff"} />)}
         <Environment resolution={128} frames={1}>
           <Lightformer form="rect" intensity={2.2} position={[0, 6, 0]} rotation-x={Math.PI / 2} scale={[10, 4, 1]} />
           <Lightformer form="rect" intensity={1.1} position={[-6, 2, 3]} rotation-y={Math.PI / 2} scale={[6, 3, 1]} />
@@ -325,6 +326,7 @@ export default function LabCanvas({
                   fallback={<FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="air" />}
                 />
                 <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="water" />
+                <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="air" withField />
               </>
             ) : (
               <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} />

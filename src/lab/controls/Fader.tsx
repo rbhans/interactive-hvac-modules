@@ -21,7 +21,15 @@ export function Fader({ label, unit, min, max, step, value, onChange, marks = []
   const id = useId();
   const pct = (v: number) => ((v - min) / (max - min)) * 100;
   const span = max - min;
-  const major = span <= 30 ? 5 : span <= 60 ? 10 : 20;
+  // temperature-sized ranges keep their 5/10/20 scale; very large or very small ranges (Btu/h, inches
+  // of water) get a "nice" step with about six majors across
+  const nice = () => {
+    const raw = span / 6;
+    const p = 10 ** Math.floor(Math.log10(raw));
+    const m = raw / p;
+    return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+  };
+  const major = span < 3 || span > 120 ? nice() : span <= 30 ? 5 : span <= 60 ? 10 : 20;
   const ticks: number[] = [];
   for (let t = Math.ceil(min / (major / 2)) * (major / 2); t <= max + 1e-9; t += major / 2) ticks.push(t);
 

@@ -48,6 +48,15 @@ PALETTE = {
     "mat_copper":     {"color": "#C47A45", "roughness": 0.35, "metallic": 0.70},
     "mat_pipe":       {"color": "#DADCE0", "roughness": 0.60, "metallic": 0.0},
     "mat_valve":      {"color": "#B08D57", "roughness": 0.40, "metallic": 0.60},
+    # vav module: office context (carpet, walls, lay-in ceiling + T-bar grid, desk top),
+    # supply diffusers / return grille, silvery flex duct
+    "mat_carpet":     {"color": "#7A7D84", "roughness": 0.95, "metallic": 0.0},
+    "mat_room_wall":  {"color": "#E6E2DA", "roughness": 0.85, "metallic": 0.0},
+    "mat_ceiling":    {"color": "#EFEFEC", "roughness": 0.90, "metallic": 0.0},
+    "mat_tbar":       {"color": "#F8F8F6", "roughness": 0.50, "metallic": 0.0},
+    "mat_diffuser":   {"color": "#F5F5F3", "roughness": 0.45, "metallic": 0.0},
+    "mat_flex":       {"color": "#C9CCD1", "roughness": 0.40, "metallic": 0.50},
+    "mat_desk":       {"color": "#C8C0B2", "roughness": 0.60, "metallic": 0.0},
 }
 
 

@@ -52,7 +52,7 @@ const vertexShader = /* glsl */ `
     vec4 n = lut(u, 1);
     vec3 t = normalize(lut(u, 2).xyz);
 
-    vec3 local = p.xyz + vec3(0.0, 0.0, 1.0) * iOffset.x * p.w + n.xyz * iOffset.y * n.w;
+    vec3 local = p.xyz + lut(u, 3).xyz * iOffset.x * p.w + n.xyz * iOffset.y * n.w;
     vec4 world = modelMatrix * vec4(local, 1.0);
     vec3 toCam = normalize(cameraPosition - world.xyz);
     // water runs inside opaque pipes: slide it along the view ray to the pipe's near surface.
@@ -110,17 +110,23 @@ function buildStream(path: FlowPath, binding: FlowBinding<Outputs>, density: num
   const curve = new THREE.CatmullRomCurve3(path.points, false, "centripetal", 0.5);
   const length = curve.getLength();
 
-  // LUT rows: 0 = position + across-spread, 1 = in-plane normal + normal-spread, 2 = tangent
-  const data = new Float32Array(LUT * 3 * 4);
+  // LUT rows: 0 = position + across-spread, 1 = in-plane normal + normal-spread, 2 = tangent, 3 = across axis
+  const data = new Float32Array(LUT * 4 * 4);
   const p = new THREE.Vector3();
   const t = new THREE.Vector3();
   const n = new THREE.Vector3();
+  const a = new THREE.Vector3();
   const last = path.points.length - 1;
   for (let k = 0; k < LUT; k++) {
     const u = k / (LUT - 1);
     curve.getPointAt(u, p);
     curve.getTangentAt(u, t);
-    n.crossVectors(t, ACROSS);
+    // "across" is world depth, squared off against the path; a path running along the depth axis
+    // (a duct seen end-on) spreads across world x instead, or its particles would line up along it
+    a.copy(ACROSS).addScaledVector(t, -t.dot(ACROSS));
+    if (a.lengthSq() < 0.05) a.set(1, 0, 0).addScaledVector(t, -t.x);
+    a.normalize();
+    n.crossVectors(t, a);
     if (n.lengthSq() < 1e-6) n.set(0, 1, 0);
     n.normalize();
     const f = curve.getUtoTmapping(u, 0) * last;
@@ -131,8 +137,9 @@ function buildStream(path: FlowPath, binding: FlowBinding<Outputs>, density: num
     data.set([p.x, p.y, p.z, s0[0] + (s1[0] - s0[0]) * w], (0 * LUT + k) * 4);
     data.set([n.x, n.y, n.z, s0[1] + (s1[1] - s0[1]) * w], (1 * LUT + k) * 4);
     data.set([t.x, t.y, t.z, 0], (2 * LUT + k) * 4);
+    data.set([a.x, a.y, a.z, 0], (3 * LUT + k) * 4);
   }
-  const lut = new THREE.DataTexture(data, LUT, 3, THREE.RGBAFormat, THREE.FloatType);
+  const lut = new THREE.DataTexture(data, LUT, 4, THREE.RGBAFormat, THREE.FloatType);
   lut.minFilter = lut.magFilter = THREE.NearestFilter;
   lut.needsUpdate = true;
 
@@ -267,6 +274,7 @@ export function FlowField({
   dark,
   density,
   medium,
+  withField,
 }: {
   flows: Record<string, FlowPath>;
   reduced: boolean;
@@ -274,15 +282,19 @@ export function FlowField({
   density: number;
   /** Only render streams of this medium (e.g. water, when a solved field handles the air) */
   medium?: "air" | "water";
+  /** Only render the air streams marked `withField` (the ones a solved field doesn't replace) */
+  withField?: boolean;
 }) {
   const store = useRuntimeStore();
   const bindings = store.getState().mod.bindings.flows as Record<string, FlowBinding<Outputs>>;
   const streams = useMemo(
     () =>
       Object.entries(bindings).flatMap(([id, b]) =>
-        flows[id] && (!medium || (b.medium ?? "air") === medium) ? [buildStream(flows[id], b, b.medium === "water" ? density * 2.5 : density)] : [],
+        flows[id] && (!medium || (b.medium ?? "air") === medium) && (!withField || b.withField)
+          ? [buildStream(flows[id], b, b.medium === "water" ? density * 2.5 : density)]
+          : [],
       ),
-    [bindings, flows, density, medium],
+    [bindings, flows, density, medium, withField],
   );
   return (
     <>

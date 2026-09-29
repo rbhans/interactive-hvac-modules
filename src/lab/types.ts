@@ -24,6 +24,11 @@ export interface FlowBinding<O> {
   tempF: (o: O) => number;
   /** Particle style */
   medium?: "air" | "water";
+  /**
+   * Keep this air stream when the module has a solved `field`: for air the field doesn't cover
+   * (a supply main running past, air mixing in a room). Other air streams are only the field's fallback.
+   */
+  withField?: boolean;
 }
 
 /**
@@ -43,6 +48,11 @@ export interface FieldBinding<O> {
    * Air takes on each stage's temperature as it crosses it: a mixing plane, a coil, and so on.
    */
   stages: Record<string, (o: O) => number>;
+  /**
+   * Scale on the baked velocities, 1 = the airflow the field was solved at. For equipment whose airflow
+   * varies a lot (a VAV box runs 15–100 %), so the air visibly speeds up and slows down.
+   */
+  speed?: (o: O) => number;
 }
 
 export interface Highlight<O> {
@@ -53,6 +63,8 @@ export interface Highlight<O> {
 
 export interface Callout<O> {
   anchor: string;
+  /** Nudge from the anchor, Blender coords (m): to pull apart callouts whose anchors line up on screen */
+  offset?: [number, number, number];
   label: string;
   value: (o: O) => string;
   tone?: (o: O) => "neutral" | "cold" | "warm" | "fault" | "overridden";
@@ -105,6 +117,11 @@ export interface RideBinding<O> {
 export interface Bindings<I, O> {
   /** First-person trip through the airflow field */
   ride?: RideBinding<O>;
+  /**
+   * Node names or prefixes that receive the key light's shadows but don't cast them: a room's walls,
+   * floor and ceiling, which would otherwise throw the whole room into the "sun's" shadow.
+   */
+  noCastShadow?: string[];
   /** Normalizers for GLB `drives` names → 0–1. Missing entries read `outputs[drives]` directly. */
   drives?: Partial<Record<string, (o: O) => number>>;
   /** Flow stream id (`flow_<id>_NN` in the GLB) → rate + temperature. The fallback when there's no `field`. */
@@ -317,6 +334,11 @@ export interface LabModule<I, S, O extends Outputs> {
   glossary?: Record<string, { term: string; def: string }>;
   glb: string;
   camera: { position: [number, number, number]; target: [number, number, number]; fov?: number };
+  /**
+   * Extra lights, shadowless, three.js coords. For an interior scene: the office under a ceiling is
+   * lit from inside, not by the key light the rest of the scene plays as the sun.
+   */
+  lights?: { position: [number, number, number]; intensity: number; color?: string }[];
   model: LabModel<I, S, O>;
   bindings: Bindings<I, O>;
   controls: ControlSection<I, O>[];

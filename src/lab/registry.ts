@@ -32,7 +32,14 @@ export const registry: RegistryEntry[] = [
     glb: asset("/lab/coils/scene.glb"),
     load: () => import("@/modules/coils").then((m) => m.default),
   },
-  { slug: "vav-box", number: "03", title: "VAV box", insight: "Pressure-independent doesn't mean pressure-proof." },
+  {
+    slug: "vav-box",
+    number: "03",
+    title: "VAV box",
+    insight: "Pressure-independent doesn't mean pressure-proof.",
+    glb: asset("/lab/vav/scene.glb"),
+    load: () => import("@/modules/vav").then((m) => m.default),
+  },
   { slug: "static-reset", number: "04", title: "Static pressure reset", insight: "Trim & respond, one request at a time." },
 ];
 

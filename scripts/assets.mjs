@@ -63,6 +63,21 @@ const MODULES = {
     maxTris: 60000,
     maxBytes: 1_000_000,
   },
+  vav: {
+    drives: ['damperPos', 'actuatorPos'],
+    require: [
+      'room', 'room_floor', 'room_wall_back', 'room_wall_left', 'ceiling_tiles', 'ceiling_grid',
+      'diffuser_01', 'diffuser_02', 'return_grille', 'tstat', 'desk', 'monitor', 'chair',
+      'supply_main', 'neighbor_takeoff', 'static_tap', 'branch_duct', 'hangers',
+      'vav_box', 'vav_inlet', 'vav_flow_cross', 'vav_sense_tubes', 'vav_damper_blade', 'vav_controller',
+      'vav_actuator_hub', 'vav_casing', 'vav_casing_front', 'vav_hangers',
+      'sa_discharge', 'sa_discharge_front', 'drop_01', 'drop_02',
+      'anchor_static', 'anchor_flow', 'anchor_damper', 'anchor_box', 'anchor_diffuser', 'anchor_zone', 'anchor_tstat',
+      'flow_main_00', 'flow_box_00', 'flow_d1e_00', 'flow_ret1_00',
+    ],
+    maxTris: 60000,
+    maxBytes: 1_000_000,
+  },
 };
 
 const rawPath = (m) => path.join(ROOT, 'build', `${m}.raw.glb`);
@@ -138,8 +153,9 @@ function validateFlow(m) {
       for (const key of ['ux', 'uy', 'uz']) if (s[key] !== want[key]) errors.push(`state ${k} ${key} offset ${s[key]} != ${want[key]}`);
       if (!(s.vmax > 0 && Number.isFinite(s.vmax))) errors.push(`state ${k} vmax ${s.vmax}`);
     });
-    // Every domain boundary face is a wall (-128) except the openings, which are on the two x planes
-    // and must carry flow. Checked on all six planes of every state, plus each state's mass balance.
+    // Every domain boundary face is a wall (-128) except the openings (on any of the six planes: a
+    // duct end on x, diffuser necks on z), and every opening must carry flow. Checked for every state,
+    // plus each state's mass balance.
     if (bytes.length === per * meta.states.length) {
       const q = new Int8Array(bytes.buffer, bytes.byteOffset, bytes.length);
       const ix = (i, j, k) => (k * ny + j) * (nx + 1) + i;
@@ -147,27 +163,19 @@ function validateFlow(m) {
       const iz = (i, j, k) => (k * ny + j) * nx + i;
       const A = meta.h * meta.h;
       meta.states.forEach((s, st) => {
-        const bad = { y: 0, z: 0, xNoFlow: 0 };
-        for (let k = 0; k < nz; k++) for (let i = 0; i < nx; i++) {
-          if (q[s.uy + iy(i, 0, k)] !== -128) bad.y++;
-          if (q[s.uy + iy(i, ny, k)] !== -128) bad.y++;
-        }
-        for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-          if (q[s.uz + iz(i, j, 0)] !== -128) bad.z++;
-          if (q[s.uz + iz(i, j, nz)] !== -128) bad.z++;
-        }
-        let inflow = 0, outflow = 0;
-        for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) {
-          for (const [i, sign] of [[0, 1], [nx, -1]]) {
-            const v = q[s.ux + ix(i, j, k)];
-            if (v === -128) continue;
-            if (v === 0) { bad.xNoFlow++; continue; }
-            const flow = sign * Math.sign(v) * (v / 127) ** 2 * s.vmax * A; // > 0 = into the field
-            if (flow > 0) inflow += flow; else outflow -= flow;
-          }
-        }
-        if (bad.y || bad.z) errors.push(`state ${st}: ${bad.y} y-boundary and ${bad.z} z-boundary faces are not walls`);
-        if (bad.xNoFlow) errors.push(`state ${st}: ${bad.xNoFlow} open x-boundary faces carry no flow (an opening must be a wall or a port)`);
+        let inflow = 0, outflow = 0, noFlow = 0;
+        // sign +1 on a min plane: flow along +axis there is into the field
+        const face = (offset, index, sign) => {
+          const v = q[offset + index];
+          if (v === -128) return;
+          if (v === 0) { noFlow++; return; }
+          const flow = sign * Math.sign(v) * (v / 127) ** 2 * s.vmax * A; // > 0 = into the field
+          if (flow > 0) inflow += flow; else outflow -= flow;
+        };
+        for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) { face(s.ux, ix(0, j, k), 1); face(s.ux, ix(nx, j, k), -1); }
+        for (let k = 0; k < nz; k++) for (let i = 0; i < nx; i++) { face(s.uy, iy(i, 0, k), 1); face(s.uy, iy(i, ny, k), -1); }
+        for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { face(s.uz, iz(i, j, 0), 1); face(s.uz, iz(i, j, nz), -1); }
+        if (noFlow) errors.push(`state ${st}: ${noFlow} open boundary faces carry no flow (an opening must be a wall or a port)`);
         if (!(inflow > 0)) errors.push(`state ${st}: no inflow through the openings`);
         else if (Math.abs(inflow - outflow) > 0.01 * inflow) {
           errors.push(`state ${st}: openings don't balance: ${inflow.toFixed(4)} m³/s in, ${outflow.toFixed(4)} m³/s out`);

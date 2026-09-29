@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { HandIcon } from "../controls/primitives";
 import { RuntimeContext, useRuntime, useRuntimeStore } from "../shell/runtime";
 import type { Callout, Outputs } from "../types";
-import type * as THREE from "three";
+import * as THREE from "three";
 
 const TONE_DOT: Record<string, string> = {
   neutral: "bg-screen-ink",
@@ -47,7 +47,12 @@ export function Callouts({ anchors, callouts }: { anchors: Record<string, THREE.
     <>
       {callouts.map((c) =>
         anchors[c.anchor] ? (
-          <Html key={c.anchor} position={anchors[c.anchor]} zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
+          <Html
+            key={c.anchor}
+            position={c.offset ? anchors[c.anchor].clone().add(new THREE.Vector3(c.offset[0], c.offset[2], -c.offset[1])) : anchors[c.anchor]}
+            zIndexRange={[20, 0]}
+            style={{ pointerEvents: "none" }}
+          >
             <RuntimeContext.Provider value={store}>
               <Chip c={c} />
             </RuntimeContext.Provider>

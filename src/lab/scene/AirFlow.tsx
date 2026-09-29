@@ -388,6 +388,8 @@ function AirParticles({
       }
     });
 
+    // the field's velocities scaled to the airflow right now (a VAV box runs from a trickle to full)
+    const vis = VIS_SCALE * Math.min(2, Math.max(0.1, binding.speed?.(o) ?? 1));
     // advect: RK2 through the field plus a little turbulence, sub-stepped so nothing jumps a wall
     const maxStep = field.h * 0.45;
     const walls = wallState(field, c.posSmooth);
@@ -401,21 +403,21 @@ function AirParticles({
       let y = y0;
       let z = z0;
       sampleField(field, c.posSmooth, walls, x, y, z, tmp.v);
-      const speed = Math.hypot(tmp.v[0], tmp.v[1], tmp.v[2]) * VIS_SCALE;
+      const speed = Math.hypot(tmp.v[0], tmp.v[1], tmp.v[2]) * vis;
       const subs = Math.min(6, Math.max(1, Math.ceil((Math.min(speed, MAX_SPEED) * dt) / maxStep)));
       const h = dt / subs;
       for (let sI = 0; sI < subs; sI++) {
         sampleField(field, c.posSmooth, walls, x, y, z, tmp.v);
-        const s1 = Math.hypot(tmp.v[0], tmp.v[1], tmp.v[2]) * VIS_SCALE;
-        const k1 = s1 > MAX_SPEED ? (MAX_SPEED / s1) * VIS_SCALE : VIS_SCALE;
+        const s1 = Math.hypot(tmp.v[0], tmp.v[1], tmp.v[2]) * vis;
+        const k1 = s1 > MAX_SPEED ? (MAX_SPEED / s1) * vis : vis;
         tmp.m[0] = x + tmp.v[0] * k1 * h * 0.5;
         tmp.m[1] = y + tmp.v[1] * k1 * h * 0.5;
         tmp.m[2] = z + tmp.v[2] * k1 * h * 0.5;
         // the midpoint can't reach past a wall either, or it would sample the air on the other side
         collide(field, walls, x, y, z, tmp.m);
         sampleField(field, c.posSmooth, walls, tmp.m[0], tmp.m[1], tmp.m[2], tmp.v2);
-        const s2 = Math.hypot(tmp.v2[0], tmp.v2[1], tmp.v2[2]) * VIS_SCALE;
-        const k2 = s2 > MAX_SPEED ? (MAX_SPEED / s2) * VIS_SCALE : VIS_SCALE;
+        const s2 = Math.hypot(tmp.v2[0], tmp.v2[1], tmp.v2[2]) * vis;
+        const k2 = s2 > MAX_SPEED ? (MAX_SPEED / s2) * vis : vis;
         curl(x, y, z, c.t, tmp.n);
         const turb = 0.02 + 0.08 * Math.min(s2, MAX_SPEED);
         tmp.p[0] = x + (tmp.v2[0] * k2 + tmp.n[0] * turb) * h;

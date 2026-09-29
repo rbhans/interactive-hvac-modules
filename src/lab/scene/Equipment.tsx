@@ -48,7 +48,9 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
       const named = (x: THREE.Object3D | null): boolean => !!x && (NO_INNER_LINES.test(x.name) || named(x.parent));
       o.layers.enable(named(o) ? OCCLUDE_LAYER : INK_LAYER);
       // the key light's shadows
-      o.castShadow = true;
+      const noCast = (x: THREE.Object3D | null): boolean =>
+        !!x && ((mod.bindings.noCastShadow ?? []).some((p) => x.name === p || x.name.startsWith(p)) || noCast(x.parent));
+      o.castShadow = !noCast(o);
       o.receiveShadow = true;
     });
     return { idx, ink };
