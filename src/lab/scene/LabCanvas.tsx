@@ -151,7 +151,8 @@ function Rig({ position, target }: { position: [number, number, number]; target:
   const controls = useRef<OrbitControlsImpl>(null);
   const camera = useThree((s) => s.camera);
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height));
-  const fit = Math.min(1.75, Math.max(1, REF_ASPECT / aspect));
+  // up to a phone held upright in full screen, where the frame is less than half as wide as it is tall
+  const fit = Math.min(3.4, Math.max(1, REF_ASPECT / aspect));
   const nonce = useRuntime((s) => s.cameraNonce);
   const riding = useRuntime((s) => s.ride !== null);
   const invalidate = useThree((s) => s.invalidate);
@@ -171,9 +172,15 @@ function Rig({ position, target }: { position: [number, number, number]; target:
       el.removeEventListener("pointerleave", off);
     };
   }, [gl]);
+  // on the page, one finger scrolls it and two orbit; full screen, the view takes every touch. Set on
+  // the element the controls listen on (the canvas's wrapper, R3F's event source), which the controls
+  // themselves set to "none" when they connect
+  const expanded = useRuntime((s) => s.expanded);
+  const source = useThree((s) => s.events.connected) as HTMLElement | undefined;
   useEffect(() => {
-    if (coarse) gl.domElement.style.touchAction = "pan-y";
-  });
+    const el = controls.current?.domElement ?? source;
+    if (coarse && el) el.style.touchAction = expanded ? "none" : "pan-y";
+  }, [coarse, expanded, source]);
 
   useEffect(() => {
     const c = controls.current;
@@ -211,10 +218,17 @@ function Rig({ position, target }: { position: [number, number, number]; target:
       target={target}
       enableDamping
       dampingFactor={0.12}
-      enableZoom={engaged || coarse}
-      touches={coarse ? { ONE: undefined as unknown as THREE.TOUCH, TWO: THREE.TOUCH.DOLLY_ROTATE } : undefined}
+      enableZoom={engaged || coarse || expanded}
+      touches={
+        coarse
+          ? expanded
+            ? { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }
+            : { ONE: undefined as unknown as THREE.TOUCH, TWO: THREE.TOUCH.DOLLY_ROTATE }
+          : undefined
+      }
       minDistance={3}
-      maxDistance={15}
+      // room to back out a bit past home, however far home had to go to fit the frame
+      maxDistance={Math.max(15, 1.25 * fit * Math.hypot(position[0] - target[0], position[1] - target[1], position[2] - target[2]))}
       minPolarAngle={0.15}
       maxPolarAngle={Math.PI * 0.495}
       panSpeed={0.6}

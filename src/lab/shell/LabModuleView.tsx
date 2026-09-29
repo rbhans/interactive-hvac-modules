@@ -89,7 +89,8 @@ function Workbench() {
           {mod.insight}
         </h1>
         <p className="micro max-w-[36ch] leading-relaxed">
-          {mod.title} · {mod.presets.length} presets · drag to orbit · press ? for keys
+          {mod.title} · {mod.presets.length} presets · <span className="pointer-coarse:hidden">drag to orbit · press ? for keys</span>
+          <span className="hidden pointer-coarse:inline">full screen to turn and zoom</span>
         </p>
         {mod.intro && <p className="w-full max-w-[68ch] text-[15.5px] leading-relaxed text-ink-2">{mod.intro}</p>}
       </div>

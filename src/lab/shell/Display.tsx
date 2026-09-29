@@ -157,6 +157,53 @@ function HeatLegend() {
   );
 }
 
+/** Fill the screen with the 3D view, or come back from it. */
+function ExpandButton() {
+  const { expanded, setExpanded } = useRuntime(useShallow((s) => ({ expanded: s.expanded, setExpanded: s.setExpanded })));
+  return (
+    <button
+      type="button"
+      className="key-screen !px-2"
+      onClick={() => setExpanded(!expanded)}
+      aria-label={expanded ? "Exit full screen" : "Full screen: turn and zoom the model"}
+      aria-pressed={expanded}
+      title={expanded ? "Exit full screen (Esc)" : "Full screen"}
+    >
+      {expanded ? (
+        <svg viewBox="0 0 12 12" className="size-3" aria-hidden>
+          <path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 12 12" className="size-3" aria-hidden>
+          <path d="M1.5 4.5v-3h3M10.5 4.5v-3h-3M1.5 7.5v3h3M10.5 7.5v3h-3" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+/** Full screen on a touch screen: say once how the gestures work, then get out of the way. */
+function GestureHint() {
+  const [show, setShow] = useState(true);
+  useEffect(() => {
+    const id = window.setTimeout(() => setShow(false), 3800);
+    return () => window.clearTimeout(id);
+  }, []);
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-16 flex justify-center transition-opacity duration-500",
+        show ? "opacity-100" : "opacity-0",
+      )}
+    >
+      <span className="num rounded-full bg-black/60 px-3 py-1.5 text-[10.5px] uppercase tracking-[0.1em] text-white/85 backdrop-blur-md">
+        Drag to turn · pinch to zoom · two fingers to move
+      </span>
+    </div>
+  );
+}
+
 /** A faint wash of outdoor-air color across the top of the stage: the weather the unit is breathing. */
 function WeatherTint() {
   const oat = useRuntime((s) => Math.round((s.outputs.oat as number) ?? 60));
@@ -188,6 +235,40 @@ export const Display = memo(function Display({ compact, className }: { compact?:
   const [failed, setFailed] = useState<string | null>(null);
   const [snap, setSnap] = useState<{ url: string; fade: boolean } | null>(null);
   const riding = useRuntime((s) => s.ride !== null);
+  const { expanded, setExpanded } = useRuntime(useShallow((s) => ({ expanded: s.expanded, setExpanded: s.setExpanded })));
+  const [touch] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
+
+  // full screen: the page stops scrolling underneath, and on a touch screen the browser's own bars go
+  // away where it allows that (not iPhone Safari, which only full-screens video; the overlay still fills it)
+  useEffect(() => {
+    if (!expanded) return;
+    const html = document.documentElement;
+    const prev = html.style.overflow;
+    html.style.overflow = "hidden";
+    let went = false;
+    if (touch && html.requestFullscreen && !document.fullscreenElement) {
+      html
+        .requestFullscreen({ navigationUI: "hide" })
+        .then(() => void (went = true))
+        .catch(() => {});
+    }
+    // backing out of the browser's full screen (the back gesture, Esc) closes ours too
+    const onChange = () => {
+      if (went && !document.fullscreenElement) setExpanded(false);
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    // a lesson's embedded view has no keyboard shortcuts of its own (the module page's Esc ends a ride first)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpanded(false);
+    };
+    if (compact) window.addEventListener("keydown", onKey);
+    return () => {
+      html.style.overflow = prev;
+      document.removeEventListener("fullscreenchange", onChange);
+      window.removeEventListener("keydown", onKey);
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    };
+  }, [expanded, setExpanded, touch, compact]);
   // first person needs motion and the full-size display
   const canRide = useRuntime((s) => Boolean(s.mod.bindings.ride && s.mod.bindings.field)) && !compact && !reduced;
 
@@ -205,7 +286,13 @@ export const Display = memo(function Display({ compact, className }: { compact?:
       ref={ref}
       data-riding={riding}
       // a phone's landscape stage is too short to ride through: stand it up while riding
-      className={cn("stage relative isolate overflow-hidden transition-[aspect-ratio] duration-500", className, "max-sm:data-[riding=true]:aspect-[4/5]")}
+      className={cn(
+        "stage relative isolate overflow-hidden transition-[aspect-ratio] duration-500",
+        className,
+        "max-sm:data-[riding=true]:aspect-[4/5]",
+        // full screen: fixed over everything, whatever size the page gave it
+        expanded && "!fixed !inset-0 !z-[80] !h-[100dvh] !w-full !max-w-none !aspect-auto !rounded-none",
+      )}
       role="group"
       aria-roledescription="3D equipment view"
       aria-label="Equipment view"
@@ -248,9 +335,16 @@ export const Display = memo(function Display({ compact, className }: { compact?:
         <RideHud />
       ) : (
         <>
+          {/* full screen, the model can fill the frame edge to edge: shade under the keys so they stay legible on a white wall */}
+          {expanded && (
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgb(0_0_0/.42),transparent_110px,transparent_calc(100%-110px),rgb(0_0_0/.42))]" />
+          )}
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3 [&>*]:pointer-events-auto">
             <StatusChips />
-            {!compact && <Transport />}
+            <div className="flex items-center gap-1.5">
+              {!compact && <Transport />}
+              <ExpandButton />
+            </div>
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-3 [&>*]:pointer-events-auto">
             <ViewKeys ride={canRide} />
@@ -260,6 +354,7 @@ export const Display = memo(function Display({ compact, className }: { compact?:
           </div>
         </>
       )}
+      {expanded && touch && !riding && <GestureHint />}
       <SceneDescription />
     </div>
   );

@@ -91,7 +91,7 @@ export function RideHud() {
           {hud?.note && <p className="mt-1 line-clamp-3 text-[12px] leading-snug text-white/75 sm:line-clamp-none sm:text-[13.5px]">{hud.note}</p>}
         </div>
         <button type="button" onClick={endRide} className={`${glass} num shrink-0 px-3 py-2 text-[10.5px] uppercase tracking-[0.1em] hover:bg-black/70`}>
-          <span className="text-white/50">Esc</span> Leave
+          <span className="text-white/50 pointer-coarse:hidden">Esc</span> Leave
         </button>
       </div>
 

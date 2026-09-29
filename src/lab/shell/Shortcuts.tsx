@@ -37,8 +37,9 @@ export function useShortcuts(store: RuntimeStore, onHelp: () => void) {
       const s = store.getState();
       const k = e.key.toLowerCase();
       if (e.key === "Escape") {
-        if (!s.ride) return;
-        s.endRide();
+        if (s.ride) s.endRide();
+        else if (s.expanded) s.setExpanded(false);
+        else return;
       } else if (k === "a") {
         const ride = s.mod.bindings.ride;
         if (!ride || !s.mod.bindings.field || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;

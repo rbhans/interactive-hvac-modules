@@ -55,6 +55,8 @@ export interface RuntimeState {
   rideHud: RideHud | null;
   /** The view to go back to when the ride ends */
   rideView: ViewState | null;
+  /** The 3D view fills the screen and takes every touch (rotate, pinch, pan) */
+  expanded: boolean;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setInputs: (fn: (i: any) => any) => void;
@@ -69,6 +71,7 @@ export interface RuntimeState {
   startRide: (start: string) => void;
   endRide: () => void;
   setRideHud: (h: RideHud | null) => void;
+  setExpanded: (v: boolean) => void;
   /** Advance by real seconds (scaled by speed, sub-stepped) */
   advance: (realDt: number) => void;
 }
@@ -116,6 +119,7 @@ export function createRuntime(
     ride: null,
     rideHud: null,
     rideView: null,
+    expanded: false,
 
     setInputs: (fn) => {
       const inputs = fn(get().inputs);
@@ -185,6 +189,7 @@ export function createRuntime(
       });
     },
     setRideHud: (rideHud) => set({ rideHud }),
+    setExpanded: (expanded) => set({ expanded, transitionAt: performance.now() }),
 
     advance: (realDt) => {
       const st = get();
