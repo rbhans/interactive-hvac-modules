@@ -6,6 +6,9 @@ Small interactive modules. Each one pairs a 3D equipment scene with BAS-style co
 - **02 Coils & valves:** *half the water does most of the work.*
 - **03 VAV box:** *pressure-independent doesn't mean pressure-proof.*
 - **04 Static pressure reset:** *trim & respond, one request at a time.*
+- **05 Pumps & VFDs:** *slow the pump, don't choke it.*
+
+Modules are grouped in the nav and on the home page: air side (01–04) and water side (05 on).
 
 Built on Next.js 15, React 19, TypeScript, Tailwind v4, React Three Fiber, and drei. `components.json` is present, so shadcn components drop in if you need them.
 
@@ -160,6 +163,23 @@ Where it simplifies:
 
 Checked against: the trim & respond defaults in LBNL's reference Guideline 36 implementation ([SupplyFan.mo](https://github.com/lbl-srg/modelica-buildings/blob/master/Buildings/Controls/OBC/ASHRAE/G36/AHUs/MultiZone/VAV/SetPoints/SupplyFan.mo): 120 Pa start, 25 Pa minimum, 120 s, 2 ignored, −12 / +15 / 32 Pa), its VAV request rules ([SystemRequests.mo](https://github.com/lbl-srg/modelica-buildings/blob/master/Buildings/Controls/OBC/ASHRAE/G36/TerminalUnits/Reheat/Subsequences/SystemRequests.mo)), and Trane's [Guideline 36 Engineers Newsletter](https://www.tranehk.com/files/News/EngrNewsletter/Trane%20Engineers%20Newsletter_May2021.pdf) for the importance multiplier, the running request totals and rogue zones holding the setpoint at its maximum. The fan, duct and box numbers are typical values, not one real system's.
 
+## Pumps model: what's real and what's simplified
+
+What the model does:
+
+- **Pump curve:** a parabola from shutoff, `H = n²·H0 − (H0/Qmax²)·Q²`, which is exactly what the affinity laws do to it at speed fraction `n`. The right-size pump makes 90 ft at shutoff and 70 ft at its 400 gpm design point; the oversized one 120 ft and about 100 ft at 400.
+- **System curve:** the loop is closed, so there's no static lift and the curve runs through the origin: `H = K·Q²`, with the piping and coils at 62 ft, the suction strainer at 3 ft (up to twelve times that clogged) and the triple-duty valve at 5 ft wide open, all at design flow. The valve adds resistance on an equal-percentage-like curve as it closes.
+- **Operating point:** solved exactly where the two cross; the flow follows it with a short lag for the water column's inertia.
+- **Efficiency and power:** pump efficiency is a parabola around the best efficiency point, which slides with speed, so a slowed pump stays efficient and a choked one doesn't. Motor and drive efficiency drop a little at low speed. A pump at shutoff still draws about a third of its best-point power.
+- **Control:** one flow loop drives either the drive's speed (valve wide open) or the valve (pump at 60 Hz). Choking stands in for a balancer setting the triple-duty valve by hand. Hand on the drive writes the speed at priority 8.
+- **Faults:** wired backwards, a centrifugal pump still pumps, at about 40 % of its head and 60 % of its flow and half its efficiency here. The clogged strainer is a growing resistance on the suction, which the suction gauge shows.
+
+Where it simplifies:
+
+- Real pump curves aren't exact parabolas, and real efficiency islands aren't either. The shapes and the cube law are right; the exact numbers are a typical pump's, not a catalog's.
+- No minimum-flow protection, no cavitation or NPSH, no motor overload.
+- The suction gauge reads the loop's fill pressure less the strainer; the piping's own losses are all on the far side of the loop.
+
 ## Airflow
 
 The air in the 3D view follows a velocity field solved on the unit's real geometry, not hand-drawn paths.
@@ -232,6 +252,7 @@ Claude runs the same `blender/build.py` inside a live Blender session over MCP (
   - Inner ink lines (`InkEdges.tsx`) come from a normal-buffer edge pass. They're heavier in crevices than on outside edges, with a slight hand-drawn waver. Fin packs, filter pleats and the fan wheel are left out.
   - Seams, rivets and hard metal glints are set per material. A soft paint grain and a little grime near the deck finish it.
   - All of it is tunable through `DETAIL` in `toon.ts` (live as `window.__detail` in dev).
+- **Water:** a module that lists its insulated pipes in `bindings.liquid` gets liquid water (`LiquidFlow.tsx`). In the cutaway view those pipes turn into glass tubes: clear where they face you, solid toward the silhouette, outline kept. A liquid core runs inside along each water path, colored on the heat scale and shaded in the same flat bands as everything else. Its surface is a moving caustic web (the borders of drifting cells, stretched along the pipe) that rides downstream at a scaled-down water speed, with thin bright dashes, sharp at their downstream end, for direction. Still water goes calm. The core sits just inside the bare pipe's radius, so valves and fittings hide it. Modules without `liquid` keep the older water streaks.
 
 Status colors are consistent everywhere:
 

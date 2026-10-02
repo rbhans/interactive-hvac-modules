@@ -1,0 +1,41 @@
+<CardSection id="basics" title="The basics">
+
+Chilled water leaves the chillers and has to be pushed around the building, through miles of pipe, the coils and their valves, and back. A <Term id="pump">centrifugal pump</Term> does the pushing. Its <Term id="impeller">impeller</Term> spins inside the casing, takes water in at its center and flings it out at its rim, and the casing turns that speed into pressure. Flow is measured in <Term id="gpm">gpm</Term>; pressure, for pumps and pipes, in <Term id="head">feet of head</Term>.
+
+Two curves decide everything. The <Term id="pumpcurve">pump curve</Term> is how much head the pump makes at each flow. The <Term id="systemcurve">system curve</Term> is how much head the pipes take at each flow, and in a closed loop it grows with the square of the flow. The pump can only run where they cross: the <Term id="operating">operating point</Term>. This pump was picked for 400 gpm at 70 ft.
+
+In the 3D view the pipes are see-through in the cutaway, with the chilled water moving inside them. The pump's casing is cut open over the impeller. The chart on the bench is the two curves and where they meet.
+
+</CardSection>
+
+<CardSection id="two-ways" title="Choke it or slow it">
+
+Most of the year the building needs less than design flow. There are two ways to get less water out of the pump.
+
+Load **Choke the valve**. The pump stays at 60 Hz and the <Term id="tdv">triple-duty valve</Term> on its discharge closes until the flow is down to 300 gpm. Closing a valve steepens the system curve, so the operating point slides up the pump curve: less flow, but more head. The extra head is burned in the valve, the orange bar on the chart. It takes 6.8 kW.
+
+Load **Slow the pump**. The valve stays wide open and the <Term id="vfd">VFD</Term> slows the pump to 45 Hz. Its whole curve drops until it crosses the pipes' own curve at 300 gpm. No head wasted: 3.1 kW for the same water.
+
+That's the <Term id="affinity">affinity laws</Term>. Flow goes with speed, head with speed squared, power with speed cubed. At three-quarters speed the pump moves three-quarters of the water at about 40 % of the power. Choking only slides the pump along one curve, and power barely moves.
+
+</CardSection>
+
+<CardSection id="oversized" title="One size up">
+
+Pumps get picked with a safety margin, and then another. Load **Oversized, balanced shut**. Wide open this pump would push about 460 gpm, so at startup the balancer turned the triple-duty valve in to 71 % to get the design 400. It works, and every hour it runs the valve burns 35 ft and the pump draws 10.8 kW.
+
+Switch to **Slow the pump**: 52 Hz, the valve wide open, the same 400 gpm for 7.3 kW. The other good fix is trimming the impeller down to size. The one to avoid is the one that's easiest at startup: <Term id="balancing">balancing</Term> by throttling a pump that's bigger than it needs to be.
+
+The chart's triangle is the pump's <Term id="bep">best efficiency point</Term>. It slides down with speed, so a slowed pump stays near it. A choked one runs off to its left.
+
+</CardSection>
+
+<CardSection id="faults" title="When the numbers don't add up">
+
+Load **Drive left in Hand**. Someone ran the drive in <Term id="hand">Hand</Term> at 60 Hz on a service call and never put it back. The building gets 400 gpm when it wanted 300, and nothing alarms: too much water never complains. The only clue is a drive at 60 Hz that should be at 45.
+
+Load **Wired backwards**. After a motor swap two leads got crossed, and the impeller spins the wrong way. A centrifugal pump still pumps backwards, badly. The drive runs up to 60 Hz, gets 255 gpm against 28 ft, and the gauges show a pump making well under half the pressure it should.
+
+Load **Clogged strainer**. The <Term id="strainer">strainer</Term> on the suction is loading up. The drive is at 60 Hz and the flow stops short at 352 gpm. The suction gauge gives it away: 12 psi where it should read 21, because the strainer eats 23 ft before the water reaches the pump.
+
+</CardSection>

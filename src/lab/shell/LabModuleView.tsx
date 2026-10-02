@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ControlSectionView } from "../controls/ControlSection";
-import { registry } from "../registry";
+import { CATEGORIES, entriesIn, registry, type RegistryEntry } from "../registry";
 import type { Outputs } from "../types";
 import { Display } from "./Display";
 import { ExplainerCard } from "./ExplainerCard";
@@ -13,10 +13,117 @@ import { PresetsBar } from "./PresetsBar";
 import { useRuntime, useRuntimeStore } from "./runtime";
 import { ShortcutsDialog, useShortcuts } from "./Shortcuts";
 
+function ModuleKey({ e, current }: { e: RegistryEntry; current: boolean }) {
+  if (!e.load)
+    return (
+      <span className="key !min-h-[30px] !px-2.5 opacity-50" title={`${e.number} ${e.title}: coming soon`} aria-disabled>
+        <span className="text-ink-3">{e.number}</span>
+      </span>
+    );
+  return (
+    <Link
+      href={`/lab/${e.slug}`}
+      aria-current={current ? "page" : undefined}
+      aria-label={`${e.number} ${e.title}`}
+      title={current ? undefined : `${e.number} ${e.title}`}
+      className={cn("key !min-h-[30px] !px-2.5", current && "!bg-ink !text-panel")}
+      data-on={current}
+    >
+      <span className={cn(current ? "text-accent" : "text-ink-3")}>{e.number}</span>
+      {current && <span className="max-w-[17ch] truncate xl:max-w-[30ch]">{e.title}</span>}
+    </Link>
+  );
+}
+
+/** Phones: one key with the current module that opens the whole list, grouped */
+function ModulePicker({ slug }: { slug?: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = registry.find((e) => e.slug === slug);
+  useEffect(() => {
+    if (!open) return;
+    const away = (ev: PointerEvent) => {
+      if (!ref.current?.contains(ev.target as Node)) setOpen(false);
+    };
+    const esc = (ev: KeyboardEvent) => ev.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="flex min-w-0 flex-1 justify-end md:hidden">
+      <button
+        type="button"
+        className="key !min-h-[30px] min-w-0 !px-2.5"
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {current ? (
+          <>
+            <span className="text-accent">{current.number}</span>
+            <span className="min-w-0 truncate">{current.title}</span>
+          </>
+        ) : (
+          <span>Modules</span>
+        )}
+        <svg viewBox="0 0 10 10" className={cn("size-2.5 shrink-0 transition-transform", open && "rotate-180")} aria-hidden>
+          <path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        // anchored to the header, so it spans the page's width whatever the key's size
+        <div className="chassis-panel absolute inset-x-0 top-[calc(100%-6px)] z-[90] p-2 shadow-[0_16px_40px_-12px_rgba(0,0,0,.6)]">
+          {CATEGORIES.map((c) => (
+            <div key={c.id} className="py-1">
+              <p className="micro px-2.5 pb-1.5 pt-1">{c.label}</p>
+              <ul>
+                {entriesIn(c.id).map((e) => {
+                  const here = e.slug === slug;
+                  const row = (
+                    <>
+                      <span className={cn("num w-6 shrink-0 text-[12px]", here ? "text-accent" : "text-ink-3")}>{e.number}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[14px] text-ink">{e.title}</span>
+                        <span className="block truncate text-[12px] text-ink-3">{e.load ? e.insight : "Coming soon"}</span>
+                      </span>
+                    </>
+                  );
+                  return (
+                    <li key={e.slug}>
+                      {e.load ? (
+                        <Link
+                          href={`/lab/${e.slug}`}
+                          aria-current={here ? "page" : undefined}
+                          onClick={() => setOpen(false)}
+                          className={cn("flex items-start gap-2 rounded-[8px] px-2.5 py-2 hover:bg-white/5", here && "bg-white/[.06]")}
+                        >
+                          {row}
+                        </Link>
+                      ) : (
+                        <div className="flex items-start gap-2 px-2.5 py-2 opacity-45" aria-disabled>
+                          {row}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function LabHeader({ slug, onHelp }: { slug?: string; onHelp?: () => void }) {
   return (
-    <header className="flex items-center gap-4 py-4 sm:py-5">
-      <Link href="/" className="group flex items-center gap-2.5" aria-label="BAS Lab home">
+    <header className="relative flex items-center gap-4 py-4 sm:py-5">
+      <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label="BAS Lab home">
         <span className="grid size-7 place-items-center rounded-full bg-accent shadow-[inset_0_-2px_0_rgba(0,0,0,.18)]">
           <span className="size-2 rounded-full bg-white/90" />
         </span>
@@ -24,29 +131,22 @@ export function LabHeader({ slug, onHelp }: { slug?: string; onHelp?: () => void
           BAS&nbsp;Lab
         </span>
       </Link>
-      <span className="grille hidden h-5 flex-1 opacity-70 sm:block" aria-hidden />
-      <nav aria-label="Modules" className="flex items-center gap-1 overflow-x-auto no-scrollbar max-sm:flex-1">
-        {registry.map((e) =>
-          e.load ? (
-            <Link
-              key={e.slug}
-              href={`/lab/${e.slug}`}
-              aria-current={e.slug === slug ? "page" : undefined}
-              className={cn("key !min-h-[30px] !px-2.5", e.slug === slug && "!bg-ink !text-panel")}
-              data-on={e.slug === slug}
-            >
-              <span className={cn(e.slug === slug ? "text-accent" : "text-ink-3")}>{e.number}</span>
-              <span className="max-md:sr-only">{e.title}</span>
-            </Link>
-          ) : (
-            <span key={e.slug} className="key !min-h-[30px] !px-2.5 opacity-40" title={`${e.title}: coming soon`} aria-disabled>
-              <span className="text-ink-3">{e.number}</span>
-            </span>
-          ),
-        )}
+      <span className="grille hidden h-5 flex-1 opacity-70 md:block" aria-hidden />
+      {/* wide screens: every module as a numbered key, grouped; the one you're on shows its title */}
+      <nav aria-label="Modules" className="hidden items-center gap-3 md:flex">
+        {CATEGORIES.map((c, k) => (
+          <div key={c.id} role="group" aria-label={c.label} className="flex items-center gap-1">
+            {k > 0 && <span className="mr-2 h-5 w-px bg-line-2" aria-hidden />}
+            <span className="micro mr-1.5 !text-[9.5px]">{c.label}</span>
+            {entriesIn(c.id).map((e) => (
+              <ModuleKey key={e.slug} e={e} current={e.slug === slug} />
+            ))}
+          </div>
+        ))}
       </nav>
+      <ModulePicker slug={slug} />
       {onHelp && (
-        <button type="button" className="round-key !size-[30px] font-mono text-[12px]" onClick={onHelp} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
+        <button type="button" className="round-key !size-[30px] shrink-0 font-mono text-[12px]" onClick={onHelp} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
           ?
         </button>
       )}

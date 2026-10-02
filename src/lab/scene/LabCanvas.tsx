@@ -12,6 +12,7 @@ import { AirFlow } from "./AirFlow";
 import { Drips } from "./Drips";
 import { Equipment } from "./Equipment";
 import { FlowField } from "./FlowField";
+import { LiquidFlow } from "./LiquidFlow";
 import { InkEdges } from "./InkEdges";
 import { RideCamera } from "./RideCamera";
 import type { SceneIndex } from "./sceneIndex";
@@ -331,19 +332,25 @@ export default function LabCanvas({
           {idx && <InkEdges />}
           {idx &&
             (mod.bindings.field ? (
-              <>
-                <AirFlow
-                  binding={mod.bindings.field}
-                  reduced={reduced}
-                  dark={dark}
-                  compact={compact}
-                  fallback={<FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="air" />}
-                />
-                <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="water" />
-                <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="air" withField />
-              </>
+              <AirFlow
+                binding={mod.bindings.field}
+                reduced={reduced}
+                dark={dark}
+                compact={compact}
+                fallback={<FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="air" />}
+              />
             ) : (
-              <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} />
+              <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="air" />
+            ))}
+          {idx && mod.bindings.field && (
+            <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="air" withField />
+          )}
+          {/* water: liquid in see-through pipes where the module has them, streaks otherwise */}
+          {idx &&
+            (mod.bindings.liquid ? (
+              <LiquidFlow flows={idx.flows} reduced={reduced} />
+            ) : (
+              <FlowField flows={idx.flows} reduced={reduced} dark={dark} density={compact ? 11 : 16} medium="water" />
             ))}
           {idx && mod.bindings.condensate && <CondensateFor idx={idx} reduced={reduced} />}
           {idx && <Callouts anchors={idx.anchors} callouts={mod.bindings.callouts ?? []} />}

@@ -17,21 +17,21 @@ def _interp(pts, r):
 
 
 def wheel(scene, name, center, diameter=0.6, width=0.2, blades=10, parent=None,
-          drives="fanSpeed", rate=540.0):
+          drives="fanSpeed", rate=540.0, mat="mat_dark"):
     R = diameter / 2
     w2 = width / 2
     mb = H.MeshBuilder()
     # backplate (annulus) + hub
     bp0 = w2 - 0.008
-    mb.lathe([(bp0, 0.04), (w2, 0.04), (w2, R), (bp0, R)], 32, "mat_dark", bw=0.8)
-    mb.cylinder((0.04, 0, 0), (w2 + 0.035, 0, 0), 0.045, 20, "mat_dark", bw=1.0)
+    mb.lathe([(bp0, 0.04), (w2, 0.04), (w2, R), (bp0, R)], 32, mat, bw=0.8)
+    mb.cylinder((0.04, 0, 0), (w2 + 0.035, 0, 0), 0.045, 20, mat, bw=1.0)
     # shroud: curved cone from the inlet eye (-X) to the rim
     k = R / 0.3
     S = [(-w2, 0.197 * k), (-w2 + 0.006, 0.222 * k), (-w2 + 0.022, 0.250 * k),
          (-w2 + 0.046, 0.278 * k), (-w2 + 0.074, 0.300 * k)]
     st = 0.005
     inner = [(x + st, r) for x, r in S]
-    mb.lathe(S + list(reversed(inner)), 32, "mat_dark", bw=0.8)
+    mb.lathe(S + list(reversed(inner)), 32, mat, bw=0.8)
     # backward-curved blades (log spiral, blade angle ~35 deg)
     r1, r2 = 0.205 * k, 0.296 * k
     kk = math.tan(math.radians(35))
@@ -58,7 +58,7 @@ def wheel(scene, name, center, diameter=0.6, width=0.2, blades=10, parent=None,
             xb_ = bp0 + 0.002
             a, c = P + n, P - n
             rows.append([(xf_, a.x, a.y), (xb_, a.x, a.y), (xb_, c.x, c.y), (xf_, c.x, c.y)])
-        mb.solid_strip(rows, "mat_dark", bw=0.0)
+        mb.solid_strip(rows, mat, bw=0.0)
     obj = mb.to_object(scene, name, matrix=Matrix.Translation(Vector(center)), parent=parent, bevel=0.0015, segments=1)
     H.set_motion(obj, "spin", (0.0, rate), drives)
     return obj

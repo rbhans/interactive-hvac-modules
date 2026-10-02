@@ -13,8 +13,9 @@ const STOPS: [number, string][] = [
   [78, "#ffd59a"],
   [88, "#ff8a2a"],
   [100, "#ff3d1f"],
-  [140, "#e2104f"],
-  [200, "#b5007d"],
+  // hot water stays red: deeper, not toward violet
+  [140, "#f0202c"],
+  [200, "#c40f24"],
 ];
 
 type Lab = [number, number, number];

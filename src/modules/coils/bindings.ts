@@ -18,14 +18,18 @@ export const bindings: Bindings<CoilInputs, CoilOutputs> = {
     stages: { hw: (o) => o.afterHw, chw: (o) => o.datTrue },
   },
 
+  // the insulated pipes turn see-through in the cutaway view, and the water shows as liquid inside them
+  liquid: { pipes: ["chw_supply_pipe", "chw_return_pipe", "hw_supply_pipe", "hw_return_pipe"] },
+
   flows: {
     // fallback air path if the field can't load
     air: { rate: (o) => o.airFlow, tempF: (o) => o.eat },
     // water in the pipes
-    chws: { rate: (o) => water(o.chwFlow), tempF: (o) => o.chwEwt, medium: "water" },
-    chwr: { rate: (o) => water(o.chwFlow), tempF: (o) => o.chwLwt, medium: "water" },
-    hws: { rate: (o) => water(o.hwFlow), tempF: (o) => o.hwEwt, medium: "water" },
-    hwr: { rate: (o) => water(o.hwFlow), tempF: (o) => o.hwLwt, medium: "water" },
+    // water cores just inside the bare pipe (CHW 0.021 m, HW 0.017 m), so valves and fittings hide them
+    chws: { rate: (o) => water(o.chwFlow), tempF: (o) => o.chwEwt, medium: "water", radius: 0.019 },
+    chwr: { rate: (o) => water(o.chwFlow), tempF: (o) => o.chwLwt, medium: "water", radius: 0.019 },
+    hws: { rate: (o) => water(o.hwFlow), tempF: (o) => o.hwEwt, medium: "water", radius: 0.0155 },
+    hwr: { rate: (o) => water(o.hwFlow), tempF: (o) => o.hwLwt, medium: "water", radius: 0.0155 },
   },
 
   // pipes wear their water temperature; a working coil's fins take on a hint of it

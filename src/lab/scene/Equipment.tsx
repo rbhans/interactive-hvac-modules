@@ -8,7 +8,7 @@ import { heatLinear } from "../heat";
 import { useRuntimeStore } from "../shell/runtime";
 import { indexScene, type HighlightMesh, type SceneIndex } from "./sceneIndex";
 import { INK_LAYER, OCCLUDE_LAYER } from "./InkEdges";
-import { addInkHulls, toonify } from "./toon";
+import { addInkHulls, DetailToonMaterial, toonify } from "./toon";
 
 /** Parts too fine for inner lines: they'd ink into a solid smear. They still hide what's behind them. */
 const NO_INNER_LINES = /(_fins|_tubes|filter_media|fan_wheel|_bends)/;
@@ -34,7 +34,7 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
     const scene = gltf.scene.clone(true);
     toonify(scene);
     const prefixes = [...(mod.bindings.highlights ?? []).flatMap((h) => h.parts), ...(mod.bindings.tints ?? []).flatMap((t) => t.parts)];
-    const idx = indexScene(scene, prefixes);
+    const idx = indexScene(scene, prefixes, mod.bindings.liquid?.pipes ?? []);
     // cutaway panels get their own outline material so it can fade with the ghost
     const ink = addInkHulls(scene, {
       ownHull: new Set(idx.ghosts.map((g) => g.mesh)),
@@ -174,10 +174,15 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
         gm.material.transparent = transparent;
         gm.material.needsUpdate = true;
       }
+      const pipe = gm.kind === "pipe";
+      // a pipe keeps a faint tinted shell and its outline: you see it's a pipe, and the water inside it
       gm.material.opacity = 1 - 0.93 * g;
-      gm.material.depthWrite = g < 0.5;
+      if (pipe && gm.material instanceof DetailToonMaterial) gm.material.xray.x = g;
+      // a see-through pipe still writes depth (the liquid inside is opaque and already drawn), so its
+      // outline only shows at the rim instead of darkening the whole shell from behind
+      gm.material.depthWrite = pipe || g < 0.5;
       (gm.edges.material as THREE.LineBasicMaterial).opacity = 0.55 * g;
-      gm.edges.visible = g > 0.01;
+      gm.edges.visible = g > 0.01 && !pipe;
       // a see-through panel shouldn't hide the lines behind it, or draw its own
       if (g > 0.5) {
         gm.mesh.layers.disable(INK_LAYER);
@@ -187,9 +192,14 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
       // key light in, so the inside has light and shade instead of all being the darkest hatch
       gm.mesh.castShadow = g < 0.5 && !s.ride;
       const hull = ink.own.get(gm.mesh);
+      if (pipe) {
+        gm.mesh.renderOrder = 1;
+        if (hull) hull.renderOrder = 2;
+      }
       if (hull) {
-        (hull.material as THREE.ShaderMaterial).uniforms.opacity.value = 1 - g;
-        hull.visible = g < 0.97;
+        // a see-through pipe keeps its full outline, so it still reads as a pipe from across the room
+        (hull.material as THREE.ShaderMaterial).uniforms.opacity.value = 1 - (pipe ? 0.1 : 1) * g;
+        hull.visible = pipe || g < 0.97;
       }
     }
 

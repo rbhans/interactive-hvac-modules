@@ -72,6 +72,7 @@ const detailFragmentPars = /* glsl */ `
   uniform vec4 uSeam;
   uniform vec2 uRivet;
   uniform vec2 uGlint;
+  uniform vec2 uXray;
   uniform float uHatch;
   uniform float uHatchSpacing;
   uniform vec2 uShade;
@@ -113,6 +114,12 @@ const detailFragmentPars = /* glsl */ `
 `;
 
 const detailFragment = /* glsl */ `
+  // x-ray (a see-through pipe): clear where it faces you, solid toward its silhouette, like a glass tube
+  if (uXray.x > 0.0) {
+    float facing = abs(dot(normalize(normal), normalize(vViewPosition)));
+    float edge = pow(1.0 - facing, 2.2);
+    diffuseColor.a = mix(diffuseColor.a, max(diffuseColor.a, uXray.y), edge * uXray.x);
+  }
   {
     vec3 n = normalize(vDetailNrm);
     // how much direct light actually reaches this spot, 1 = full sun on the face (shadows included)
@@ -177,9 +184,11 @@ export class DetailToonMaterial extends THREE.MeshToonMaterial {
   rivet = new THREE.Vector2(0, 0);
   /** Toon glint: sharpness exponent and strength; 0 = none */
   glint = new THREE.Vector2(0, 0);
+  /** X-ray: how far it's on (0–1) and the opacity it keeps at its silhouette; the cutaway drives it for pipes */
+  xray = new THREE.Vector2(0, 0.6);
 
   onBeforeCompile(shader: THREE.WebGLProgramParametersWithUniforms) {
-    Object.assign(shader.uniforms, DETAIL, { uSeam: { value: this.seam }, uRivet: { value: this.rivet }, uGlint: { value: this.glint } });
+    Object.assign(shader.uniforms, DETAIL, { uSeam: { value: this.seam }, uRivet: { value: this.rivet }, uGlint: { value: this.glint }, uXray: { value: this.xray } });
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\n" + detailVertexPars)
       .replace("#include <project_vertex>", "#include <project_vertex>\n" + detailVertex);
@@ -188,7 +197,7 @@ export class DetailToonMaterial extends THREE.MeshToonMaterial {
       .replace("#include <opaque_fragment>", detailFragment + "\n#include <opaque_fragment>");
   }
   customProgramCacheKey() {
-    return "detail-toon-3";
+    return "detail-toon-4";
   }
 
   copy(source: DetailToonMaterial) {
@@ -196,6 +205,7 @@ export class DetailToonMaterial extends THREE.MeshToonMaterial {
     this.seam.copy(source.seam);
     this.rivet.copy(source.rivet);
     this.glint.copy(source.glint);
+    this.xray.copy(source.xray);
     return this;
   }
 }
@@ -215,6 +225,7 @@ const SURFACE: Record<string, { seam?: [number, number, number, number]; rivet?:
   mat_steel: { glint: [40, 0.55] },
   mat_blade: { glint: [30, 0.4] },
   mat_actuator: { glint: [90, 0.5] },
+  mat_pump: { glint: [70, 0.45] },
   mat_frame: { glint: [45, 0.35] },
   mat_sensor: { glint: [50, 0.5] },
 };

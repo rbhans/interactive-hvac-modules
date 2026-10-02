@@ -55,6 +55,8 @@ export interface GhostMesh {
   mesh: THREE.Mesh;
   material: THREE.Material;
   edges: THREE.LineSegments;
+  /** a panel all but disappears; a pipe stays a tinted glass shell with its outline, the liquid inside */
+  kind: "panel" | "pipe";
 }
 
 export interface SceneIndex {
@@ -75,7 +77,7 @@ const blenderToThree = (v: number[]) => new THREE.Vector3(v[0], v[2], -v[1]);
 
 const isNum2 = (v: unknown): v is [number, number] => Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === "number");
 
-export function indexScene(root: THREE.Object3D, highlightPrefixes: string[]): SceneIndex {
+export function indexScene(root: THREE.Object3D, highlightPrefixes: string[], pipePrefixes: string[] = []): SceneIndex {
   root.updateMatrixWorld(true);
   const byName = new Map<string, THREE.Object3D>();
   root.traverse((o) => {
@@ -88,6 +90,7 @@ export function indexScene(root: THREE.Object3D, highlightPrefixes: string[]): S
   const flowPts: Record<string, { i: number; p: THREE.Vector3; s?: [number, number] }[]> = {};
   const anchors: Record<string, THREE.Vector3> = {};
   const highlightable = new Map<string, HighlightMesh[]>();
+  const ghosted = new Set<THREE.Mesh>();
 
   const tmpQ = new THREE.Quaternion();
   const tmpS = new THREE.Vector3();
@@ -139,9 +142,11 @@ export function indexScene(root: THREE.Object3D, highlightPrefixes: string[]): S
       explode.push({ obj: o, basePos: o.position.clone(), offset });
     }
 
-    if (x.cutaway) {
+    const pipe = pipePrefixes.some((p) => o.name === p || o.name.startsWith(p));
+    if (x.cutaway || pipe) {
       o.traverse((m) => {
-        if (!(m instanceof THREE.Mesh)) return;
+        if (!(m instanceof THREE.Mesh) || ghosted.has(m)) return;
+        ghosted.add(m);
         const material = (m.material as THREE.Material).clone();
         m.material = material;
         const edges = new THREE.LineSegments(
@@ -150,7 +155,7 @@ export function indexScene(root: THREE.Object3D, highlightPrefixes: string[]): S
         );
         edges.raycast = () => {};
         m.add(edges);
-        ghosts.push({ mesh: m, material, edges });
+        ghosts.push({ mesh: m, material, edges, kind: pipe ? "pipe" : "panel" });
       });
     }
   });
@@ -171,7 +176,8 @@ export function indexScene(root: THREE.Object3D, highlightPrefixes: string[]): S
       if (!(m instanceof THREE.Mesh) || !isEmissive(m.material)) return;
       let h = claimed.get(m);
       if (!h) {
-        const material = m.material.clone() as EmissiveMaterial;
+        // a see-through mesh already has its own material, and the ghosting fades that one: tint it too
+        const material = (ghosted.has(m) ? m.material : m.material.clone()) as EmissiveMaterial;
         m.material = material;
         h = { mesh: m, material, baseColor: material.color.clone(), baseEmissive: material.emissive.clone(), baseIntensity: material.emissiveIntensity };
         claimed.set(m, h);

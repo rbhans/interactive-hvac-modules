@@ -92,6 +92,17 @@ const MODULES = {
     maxTris: 160000,
     maxBytes: 2_000_000,
   },
+  pumps: {
+    drives: ['pumpSpeed', 'valveTravel', 'suctionGauge', 'dischargeGauge'],
+    require: [
+      'floor_slab', 'pad', 'wall_back', 'pump', 'pump_casing', 'pump_casing_front', 'pump_impeller', 'pump_motor',
+      'suction_pipe', 'discharge_pipe', 'suction_strainer', 'suction_valve', 'tdv', 'tdv_handwheel', 'flow_meter',
+      'suction_gauge_needle', 'discharge_gauge_needle', 'vfd', 'anchor_pump', 'anchor_meter', 'anchor_valve',
+      'anchor_gauges', 'anchor_strainer', 'anchor_vfd', 'flow_suc_00', 'flow_dis_00',
+    ],
+    maxTris: 100000,
+    maxBytes: 1_500_000,
+  },
 };
 
 const rawPath = (m) => path.join(ROOT, 'build', `${m}.raw.glb`);

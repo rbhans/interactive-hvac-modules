@@ -25,6 +25,11 @@ export interface FlowBinding<O> {
   /** Particle style */
   medium?: "air" | "water";
   /**
+   * Water with `Bindings.liquid`: the radius of the liquid core drawn along the path, m. Keep it inside
+   * the bare pipe's bore, so the core hides wherever the pipe isn't see-through (valves, fittings).
+   */
+  radius?: number;
+  /**
    * Keep this air stream when the module has a solved `field`: for air the field doesn't cover
    * (a supply main running past, air mixing in a room). Other air streams are only the field's fallback.
    */
@@ -117,6 +122,12 @@ export interface RideBinding<O> {
 export interface Bindings<I, O> {
   /** First-person trip through the airflow field */
   ride?: RideBinding<O>;
+  /**
+   * Water drawn as liquid inside its pipes: these node names or prefixes (the pipes' insulation jackets)
+   * turn see-through in the cutaway view, and every `medium: "water"` stream becomes a flowing liquid
+   * core along its path instead of streaks.
+   */
+  liquid?: { pipes: string[] };
   /**
    * Node names or prefixes that receive the key light's shadows but don't cast them: a room's walls,
    * floor and ceiling, which would otherwise throw the whole room into the "sun's" shadow.

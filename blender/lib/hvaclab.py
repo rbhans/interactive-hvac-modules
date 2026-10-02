@@ -57,6 +57,8 @@ PALETTE = {
     "mat_diffuser":   {"color": "#F5F5F3", "roughness": 0.45, "metallic": 0.0},
     "mat_flex":       {"color": "#C9CCD1", "roughness": 0.40, "metallic": 0.50},
     "mat_desk":       {"color": "#C8C0B2", "roughness": 0.60, "metallic": 0.0},
+    # water side: the pump's enamel
+    "mat_pump":       {"color": "#3F7A63", "roughness": 0.45, "metallic": 0.0},
 }
 
 
