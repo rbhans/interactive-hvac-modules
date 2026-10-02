@@ -118,7 +118,7 @@ function Faults({ c }: { c: FaultsControl<unknown> }) {
 
 function Trend({ c }: { c: Extract<C, { kind: "trend" }> }) {
   const { trend, now } = useRuntime(useShallow((s) => ({ trend: s.trend, now: s.state.t as number })));
-  return <TrendChart pens={c.pens} window={c.window} t={trend.t} series={trend.series} now={now} />;
+  return <TrendChart pens={c.pens} window={c.window} t={trend.t} series={trend.series} now={now} left={c.left} />;
 }
 
 function Single({ c }: { c: C }) {

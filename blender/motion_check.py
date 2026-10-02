@@ -31,6 +31,11 @@ IGNORE = {
         frozenset(("chw_valve_stem", "chw_valve")), frozenset(("chw_valve_stem", "chw_valve_actuator")),
         frozenset(("chw_valve_stem", "chw_valve_indicator")),
     },
+    "reset": {
+        # each box's damper shaft runs through the inlet collar's bushings and into the actuator
+        p for n in range(1, 5) for p in (frozenset(("vav%d_damper_blade" % n, "vav%d_inlet" % n)),
+                                         frozenset(("vav%d_damper_blade" % n, "vav%d_controller" % n)))
+    },
 }.get(SCENE.name, set())
 RANGED = ("rotate", "translate")
 

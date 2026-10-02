@@ -246,11 +246,24 @@ export interface TrendPen<O> {
   value: (o: O) => number;
 }
 
+/** The trend's left axis, for pens on `axis: "temp"`; defaults to °F */
+export interface TrendAxis {
+  /** Unit after each tick label (° for temperature; often blank) */
+  tick: string;
+  /** Tick spacing, smallest span shown, decimals in the legend */
+  step: number;
+  minSpan: number;
+  digits: number;
+  /** Never range below this (0 for a pressure) */
+  floor?: number;
+}
+
 export interface TrendControl<O> extends Base {
   kind: "trend";
   /** Rolling window, seconds of sim time */
   window: number;
   pens: TrendPen<O>[];
+  left?: TrendAxis;
 }
 
 export interface FaultToggle<I> {

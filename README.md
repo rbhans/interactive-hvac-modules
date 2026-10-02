@@ -5,6 +5,7 @@ Small interactive modules. Each one pairs a 3D equipment scene with BAS-style co
 - **01 Economizer:** *damper position isn't outdoor-air percentage.*
 - **02 Coils & valves:** *half the water does most of the work.*
 - **03 VAV box:** *pressure-independent doesn't mean pressure-proof.*
+- **04 Static pressure reset:** *trim & respond, one request at a time.*
 
 Built on Next.js 15, React 19, TypeScript, Tailwind v4, React Three Fiber, and drei. `components.json` is present, so shadcn components drop in if you need them.
 
@@ -138,6 +139,26 @@ Where it simplifies:
 - The duct pressure at the box doesn't respond to this box's own airflow (a real duct would sag a little as this box opens).
 - No sound model. "A real box would whistle" in the Too much static preset is the only mention.
 - The room air and the supply main are drawn with path streams; only the branch, box, discharge and drops are a solved field.
+
+## Static pressure reset model: what's real and what's simplified
+
+What the model does:
+
+- **The system:** one supply fan on a VFD feeding a supply main with four pressure-independent VAV boxes (700–1000 cfm design), each serving a zone. The network is solved every step: march the pressures and airflows up the main from the last takeoff, and bisect for where the fan curve at this speed (shutoff 4.5 in., 3.3 in. at 3500 cfm at full speed, affinity-scaled) meets the system. The air handler's filters and coil take 1 in. at design airflow; the main loses a few hundredths between takeoffs. Each box is the VAV module's box with its own design airflow and downstream resistance; the corner office has the longest run.
+- **Fan loop:** a PI loop sets the drive's speed to hold the static sensor (between the second and third takeoffs) at the setpoint, with a speed ramp and a 15 % minimum. Operator override writes the speed at priority 8. Fan power is airflow × fan static ÷ (6356 × 0.55).
+- **Trim & respond:** ASHRAE Guideline 36's static pressure reset, with its example parameters: trim 0.05 in., respond 0.06 in. per request over the ignored ones, at most 0.13 in. a step, between 0.1 in. and the maximum (the fixed setpoint). Requests follow Guideline 36's VAV sequence: 1 while the damper is over 95 % open (held until it's under 85 %), 2 when it's also under 70 % of its airflow setpoint for a minute, 3 under 50 %. Each zone's requests are multiplied by its importance multiplier (1, or 0 to ignore it).
+- **Request-hours:** a running share of recent time each box spent asking, standing in for Guideline 36's request-hours accumulators. The rogue flag is this module's own rule: a counted zone starved (2–3 requests) most of the time while the setpoint sits at its maximum.
+- **Zones:** the VAV module's room loop, airflow loop and floating actuator per box, with a little heat from the walls and neighbors (200 Btu/h·°F toward 76 °F) so a starved room settles warm instead of running away.
+- **"Fixed setpoint" comparison:** the fan power the same airflows would take with the sensor held at the maximum. Pressure-independent boxes hold their airflows either way, so the difference is all pressure.
+
+Where it simplifies:
+
+- Time is compressed: Guideline 36 steps every 2 minutes and wants a condition held for a minute; here those are 10 s and 5 s. The boxes' actuators stroke in 13 s, like the VAV module's.
+- Fan efficiency is constant. Real fan and drive efficiency falls at low speed, so the savings at low static are a little optimistic.
+- No startup sequence (Guideline 36 starts at 0.5 in. and holds it for a delay before trimming), no suppression of requests right after a zone setpoint change, and no request-hours alarm thresholds.
+- Air is drawn with path streams throughout (no solved field), so there's no "Be the air" ride on this one.
+
+Checked against: the trim & respond defaults in LBNL's reference Guideline 36 implementation ([SupplyFan.mo](https://github.com/lbl-srg/modelica-buildings/blob/master/Buildings/Controls/OBC/ASHRAE/G36/AHUs/MultiZone/VAV/SetPoints/SupplyFan.mo): 120 Pa start, 25 Pa minimum, 120 s, 2 ignored, −12 / +15 / 32 Pa), its VAV request rules ([SystemRequests.mo](https://github.com/lbl-srg/modelica-buildings/blob/master/Buildings/Controls/OBC/ASHRAE/G36/TerminalUnits/Reheat/Subsequences/SystemRequests.mo)), and Trane's [Guideline 36 Engineers Newsletter](https://www.tranehk.com/files/News/EngrNewsletter/Trane%20Engineers%20Newsletter_May2021.pdf) for the importance multiplier, the running request totals and rogue zones holding the setpoint at its maximum. The fan, duct and box numbers are typical values, not one real system's.
 
 ## Airflow
 

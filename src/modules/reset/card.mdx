@@ -1,0 +1,61 @@
+<CardSection id="basics" title="The basics">
+
+One <Term id="ahu">air handler</Term> feeds a whole floor. Its supply fan pushes cool air into a big duct over the ceiling, and each <Term id="zone">zone</Term> takes its share through its own <Term id="vav">VAV box</Term>, the way module 03 showed. The fan's speed is set by a <Term id="vfd">VFD</Term>, the box on the mechanical room wall.
+
+What sets the speed is one number. A <Term id="sensor">static pressure sensor</Term> partway down the main reads the <Term id="static">duct static pressure</Term>, and the fan loop speeds the fan up or slows it down to hold that reading at a <Term id="setpoint">setpoint</Term>, measured in <Term id="inwc">inches of water</Term>. This module is about what that setpoint should be.
+
+In the 3D view the zones' floors are tinted by their room temperature, and streaks are air: blue is cold supply air, white is room temperature. The boxes are numbered in order down the main. The panel on the right is what an operator would see.
+
+</CardSection>
+
+<CardSection id="fixed" title="A fixed setpoint">
+
+The usual setpoint is picked for the worst day: the hottest afternoon, every box wide open at its full airflow, all at once. That might happen a few hours a year. The rest of the time the boxes need far less, and every one of them throttles down whatever pressure it doesn't need.
+
+Load **Fixed setpoint**. The fan holds 1.5 in., every box sits between 38 and 58 % open, and the fan turns 40 Hz. Watch **Pressure the dampers burn off**: the fan works to make that pressure, and the boxes throw it away to keep their airflows right.
+
+A fan's power goes with the airflow times the pressure it pushes against. The boxes hold their airflows whatever the duct does, so the only part you can take back is the pressure, and every tenth of an inch you take back is fan power you don't spend.
+
+</CardSection>
+
+<CardSection id="trim-respond" title="Trim & respond">
+
+<Term id="reset">Static pressure reset</Term> lets the boxes say how much they need. The method in <Term id="g36">ASHRAE Guideline 36</Term> is <Term id="tr">trim & respond</Term>. Every couple of minutes (every 10 s here, sped up) it counts the <Term id="request">requests</Term> from the boxes. If there are no more than it's set to ignore, it trims the setpoint by 0.05 in. If there are more, it responds: up 0.06 in. for each request over the ignored ones, but at most 0.13 in. a step.
+
+A box asks once when its damper passes 95 % open, and keeps asking until it closes below 85 %. If it's wide open and still under 70 % of the airflow it wants for a minute, it sends 2 requests; under 50 %, 3.
+
+Load **Trim & respond**. The setpoint walks down until the corner office's damper passes 95 %, takes a step or two up, and walks down again. That sawtooth between about 0.3 and 0.5 in. is the method working: it keeps finding the lowest pressure that still satisfies everyone. The fan turns about 27 Hz and draws about 60 % less than at a fixed 1.5 in. The savings are biggest at part load, which is most hours of the year.
+
+The sensor matters less, too. With a fixed setpoint, where the sensor sits decides everything, and the old rule put it about two-thirds of the way down the longest run. With trim & respond the boxes themselves say when the pressure is short.
+
+</CardSection>
+
+<CardSection id="critical" title="The critical zone">
+
+Whichever box needs the most pressure is the <Term id="critical">critical zone</Term>, and it sets the static for everybody. Here that's usually the corner office: farthest down the main, with the longest run after its box. It isn't always the same box.
+
+Load **Meeting starts**. Twenty people fill the conference room, its damper opens past 95 %, and it takes over: the setpoint settles about a tenth of an inch higher.
+
+Load **Crushed flex**. One flex duct crushed above the corner office, and that one box needs more pressure to get the same air. Since it's the box setting the pressure, the whole system pays for it: the setpoint settles near 0.7 in. and fan power rises by about half. Fixing the critical zone's ductwork saves energy at every box.
+
+</CardSection>
+
+<CardSection id="rogue" title="Rogue zones">
+
+Trim & respond trusts the boxes. A box that can never be satisfied asks forever: a slipped linkage, a box too small for its room, a thermostat someone set to 65. That's a <Term id="rogue">rogue zone</Term>, and one is enough to hold the whole system at the top.
+
+Load **Rogue zone**. The Offices' damper linkage slipped at 25 %. The actuator drives wide open, the airflow never comes, and the box sends 3 requests every step. The setpoint climbs to 1.5 in. and stays: every bit of the savings is gone, and the offices are still hot.
+
+Guideline 36 gives each zone an <Term id="importance">importance multiplier</Term>: its requests are multiplied by it, so 0 takes the zone out of the count. Tap **×1** under Offices in the panel and the reset walks back down. It also keeps request-hours, the time each zone spends asking, so the rogue stands out. The panel shows it as **% asking**. Ignoring a rogue zone gets the fan savings back. It doesn't cool the offices: someone still has to go fix the linkage.
+
+</CardSection>
+
+<CardSection id="ignores" title="How many to ignore">
+
+The <Term id="ignores">ignored requests</Term> let a system shrug off one or two fussy boxes without raising the pressure for everyone. Guideline 36's example ignores 2, a reasonable start for a floor with dozens of boxes. On this floor there are four, so 2 is half of them.
+
+Load **Ignoring too many**. The corner office runs short and sends 2 requests, and both are ignored. The setpoint keeps trimming until the box is under half its airflow and sends 3. It lives on that edge: the fan saves even more, and the corner office drifts to about 79 °F.
+
+Set the ignores from the number of boxes, then check the request-hours: a zone that's always asking is either the critical zone doing its job or a rogue, and you can't tell which from the setpoint alone.
+
+</CardSection>

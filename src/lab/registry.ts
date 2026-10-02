@@ -40,7 +40,14 @@ export const registry: RegistryEntry[] = [
     glb: asset("/lab/vav/scene.glb"),
     load: () => import("@/modules/vav").then((m) => m.default),
   },
-  { slug: "static-reset", number: "04", title: "Static pressure reset", insight: "Trim & respond, one request at a time." },
+  {
+    slug: "static-reset",
+    number: "04",
+    title: "Static pressure reset",
+    insight: "Trim & respond, one request at a time.",
+    glb: asset("/lab/reset/scene.glb"),
+    load: () => import("@/modules/reset").then((m) => m.default),
+  },
 ];
 
 export const getEntry = (slug: string) => registry.find((e) => e.slug === slug);

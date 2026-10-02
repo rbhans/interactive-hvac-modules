@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import type { TrendPen } from "../types";
+import type { TrendAxis, TrendPen } from "../types";
 import { fmt } from "./primitives";
 
 export interface TrendChartProps {
@@ -11,7 +11,10 @@ export interface TrendChartProps {
   t: number[];
   series: Record<string, number[]>;
   now: number;
+  left?: TrendAxis;
 }
+
+const DEGREES: TrendAxis = { tick: "°", step: 5, minSpan: 8, digits: 1 };
 
 function niceRange(lo: number, hi: number, minSpan: number, step: number): [number, number] {
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [0, minSpan];
@@ -20,8 +23,8 @@ function niceRange(lo: number, hi: number, minSpan: number, step: number): [numb
   return [Math.floor((mid - span / 2 - step * 0.25) / step) * step, Math.ceil((mid + span / 2 + step * 0.25) / step) * step];
 }
 
-/** Rolling mini trend on an oscilloscope-style screen. Temperature on the left axis, % on the right. */
-export function TrendChart({ pens, window: win, t, series, now }: TrendChartProps) {
+/** Rolling mini trend on an oscilloscope-style screen. Temperature (or `left`) on the left axis, % on the right. */
+export function TrendChart({ pens, window: win, t, series, now, left = DEGREES }: TrendChartProps) {
   const ref = useRef<HTMLDivElement>(null);
   // one clip rect per chart: a shared id would clip every chart on the page to the first one's size
   const clipId = `trend-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -42,7 +45,8 @@ export function TrendChart({ pens, window: win, t, series, now }: TrendChartProp
   const t0 = t1 - win;
 
   const tempVals = pens.filter((p) => p.axis === "temp").flatMap((p) => series[p.id] ?? []);
-  const [tLo, tHi] = niceRange(Math.min(...tempVals), Math.max(...tempVals), 8, 5);
+  const [rLo, tHi] = niceRange(Math.min(...tempVals), Math.max(...tempVals), left.minSpan, left.step);
+  const tLo = left.floor !== undefined ? Math.max(left.floor, rLo) : rLo;
   const [pLo, pHi] = [0, 100];
 
   const x = (tt: number) => pad.l + ((tt - t0) / win) * W;
@@ -52,11 +56,14 @@ export function TrendChart({ pens, window: win, t, series, now }: TrendChartProp
   };
 
   const tempTicks: number[] = [];
-  const tStep = tHi - tLo > 30 ? 10 : 5;
-  for (let v = tLo; v <= tHi + 1e-9; v += tStep) tempTicks.push(v);
+  const tStep = (tHi - tLo) / left.step > 6 ? left.step * 2 : left.step;
+  for (let k = 0; tLo + k * tStep <= tHi + 1e-9; k++) tempTicks.push(Math.round((tLo + k * tStep) * 1e6) / 1e6);
+  let tickDigits = 0;
+  while (tickDigits < 3 && Math.abs(tStep * 10 ** tickDigits - Math.round(tStep * 10 ** tickDigits)) > 1e-6) tickDigits++;
   // until the window fills, the newest sample sits left of the right edge: label ticks from now, and none ahead of it
   const timeTicks: number[] = [];
-  for (let s = Math.ceil(t0 / 15) * 15; s <= now + 1e-6; s += 15) timeTicks.push(s);
+  const every = win <= 100 ? 15 : win <= 240 ? 30 : 60;
+  for (let s = Math.ceil(t0 / every) * every; s <= now + 1e-6; s += every) timeTicks.push(s);
 
   const last = (id: string) => series[id]?.[series[id].length - 1];
 
@@ -70,7 +77,7 @@ export function TrendChart({ pens, window: win, t, series, now }: TrendChartProp
             </svg>
             {p.label}
             <span className="text-screen-ink">
-              {fmt(last(p.id) ?? NaN, p.axis === "temp" ? 1 : 0)}
+              {fmt(last(p.id) ?? NaN, p.axis === "temp" ? left.digits : 0)}
               {p.unit}
             </span>
           </span>
@@ -82,7 +89,8 @@ export function TrendChart({ pens, window: win, t, series, now }: TrendChartProp
             <g key={`t${v}`}>
               <line x1={pad.l} x2={pad.l + W} y1={y(v, "temp")} y2={y(v, "temp")} stroke="var(--screen-line)" strokeWidth="1" />
               <text x={pad.l - 6} y={y(v, "temp") + 3} textAnchor="end" className="num" fontSize="9" fill="var(--screen-dim)">
-                {v}°
+                {v.toFixed(tickDigits)}
+                {left.tick}
               </text>
             </g>
           ))}

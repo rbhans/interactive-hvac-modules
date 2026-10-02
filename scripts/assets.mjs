@@ -78,6 +78,20 @@ const MODULES = {
     maxTris: 60000,
     maxBytes: 1_000_000,
   },
+  reset: {
+    drives: ['fanSpeed', 'damper1', 'damper2', 'damper3', 'damper4', 'actuator1', 'actuator2', 'actuator3', 'actuator4'],
+    require: [
+      'floor_slab', 'mech_floor', 'zone1_floor', 'zone2_floor', 'zone3_floor', 'zone4_floor',
+      'wall_back', 'wall_left', 'partitions', 'ahu', 'ahu_front', 'fan_wheel', 'fan_motor', 'vfd',
+      'riser', 'riser_front', 'supply_main', 'supply_main_front', 'static_tap', 'main_hangers',
+      'vav1', 'vav1_damper_blade', 'vav1_actuator_hub', 'vav1_casing_front', 'vav2_damper_blade',
+      'vav3_damper_blade', 'vav4', 'vav4_damper_blade', 'vav4_actuator_hub', 'vav4_drop', 'vav4_diffuser',
+      'anchor_fan', 'anchor_static', 'anchor_vav1', 'anchor_vav2', 'anchor_vav3', 'anchor_vav4',
+      'flow_ahu_00', 'flow_main_00', 'flow_b1_00', 'flow_b4_00', 'flow_t1e_00', 'flow_t4w_00',
+    ],
+    maxTris: 160000,
+    maxBytes: 2_000_000,
+  },
 };
 
 const rawPath = (m) => path.join(ROOT, 'build', `${m}.raw.glb`);
