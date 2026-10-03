@@ -76,6 +76,8 @@ export const registry: RegistryEntry[] = [
     title: "Three-way vs. two-way valves",
     insight: "Three-way valves keep the pump at full speed.",
     category: "water",
+    glb: asset("/lab/valves3/scene.glb"),
+    load: () => import("@/modules/valves3").then((m) => m.default),
   },
   {
     slug: "primary-secondary",

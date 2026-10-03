@@ -103,6 +103,16 @@ const MODULES = {
     maxTris: 100000,
     maxBytes: 1_500_000,
   },
+  valves3: {
+    drives: ['pumpSpeed', 'valvePos1', 'valvePos2', 'valvePos3'],
+    require: [
+      'floor_slab', 'wall_back', 'pump_casing', 'pump_impeller', 'sup_main', 'ret_main', 'suction', 'dp_sensor',
+      'coil1_fins', 'coil2_fins', 'coil3_fins', 's1_pipe', 'r1_pipe', 'b1_pipe', 'b3_pipe', 'tv1_valve_stem', 'bv1',
+      'anchor_pump', 'anchor_dp', 'anchor_ahu1', 'anchor_ahu3', 'flow_sup_00', 'flow_ret_00', 'flow_b1_00',
+    ],
+    maxTris: 140000,
+    maxBytes: 2_000_000,
+  },
 };
 
 const rawPath = (m) => path.join(ROOT, 'build', `${m}.raw.glb`);

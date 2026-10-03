@@ -1,0 +1,35 @@
+<CardSection id="basics" title="The basics">
+
+<Term id="chw">Chilled water</Term> comes from the chillers at 44 °F. A pump pushes it along the supply main, every air handler's <Term id="coil">cooling coil</Term> takes what it needs, and the water goes back to the chillers along the return main, warmer. At design each coil here takes 100 gpm and warms it 12 °F.
+
+Each coil's control valve sits on its return. It's a <Term id="threeway">three-way valve</Term> with a <Term id="bypass">bypass</Term> from the coil's supply: whatever water the coil doesn't need goes around it instead. Shut the bypass's <Term id="balancing">balancing valve</Term> and the same valve works as a <Term id="twoway">two-way valve</Term>. That's how a lot of buildings get converted.
+
+The pump's <Term id="vfd">drive</Term> holds the <Term id="dp">differential pressure</Term> across the farthest coil at 18 ft. In the 3D view the pipes are see-through in the cutaway: cold water blue, warmer water paler. Moving water shows its web of ripples; water that isn't moving goes still.
+
+</CardSection>
+
+<CardSection id="around" title="Around instead of through">
+
+Load **Three-way valves**. The building's at two-thirds load and each coil only needs part of its water, so each valve sends the rest around. The loop still moves 324 gpm. The pressure at the far coil never drops, so the pump never slows: 58 Hz and 4.5 kW, all day.
+
+Load **Two-way valves**. Same load, bypasses shut. Now each valve cuts the flow instead of rerouting it. The loop drops to 122 gpm, the pressure at the far coil starts to climb, and the drive slows the pump to hold it: 33 Hz and 0.9 kW. That's the whole point of variable-speed pumping, and it only works if the valves let the flow actually drop.
+
+</CardSection>
+
+<CardSection id="warm" title="The water that goes back">
+
+Look at the water going back to the chillers. With two-way valves every gallon has been through a coil and comes back 18 °F warmer: the coils' own curve means part load comes back even warmer than design. With three-way valves, the bypassed water comes back as cold as it left and mixes in, so the return is only 7 °F warmer.
+
+Load **Mild day, three-way**: at 30 % load the water goes back 3 °F warmer. The chillers get almost all their water back unused, and their pumps moved it there and back for nothing. That's low <Term id="deltat">ΔT</Term>, the plant's side of this story, and module 07 is about it.
+
+</CardSection>
+
+<CardSection id="minimum" title="Not too far">
+
+Load **Mild day, all two-way**. The loop drops to 44 gpm, and the chiller needs at least 105 to keep running: its <Term id="minflow">minimum flow</Term>. All-two-way buildings need somewhere for that water to go: a minimum-flow bypass that opens at light load, a three-way valve or two left at the far ends, or a separate pump just for the chillers (module 07).
+
+Load **Halfway retrofit**: the first two coils converted, the last one left three-way. 181 gpm, 1.6 kW: most of the savings, and the loop never runs dry.
+
+Load **Bypass left wide open**. AHU-1's bypass balancing valve was opened all the way, so whenever its valve sends water around, that branch takes the easy road. It swallows about 140 gpm, the pump runs out of speed at 60 Hz, and the far coil's pressure sags below its setpoint. A bypass has to be balanced to match its coil.
+
+</CardSection>

@@ -31,6 +31,12 @@ IGNORE = {
         frozenset(("chw_valve_stem", "chw_valve")), frozenset(("chw_valve_stem", "chw_valve_actuator")),
         frozenset(("chw_valve_stem", "chw_valve_indicator")),
     },
+    "valves3": {
+        # each three-way valve's stem runs through the bonnet and the actuator, its pointer clamped to it
+        p for n in range(1, 4) for p in (frozenset(("tv%d_valve_stem" % n, "tv%d_valve" % n)),
+                                         frozenset(("tv%d_valve_stem" % n, "tv%d_valve_actuator" % n)),
+                                         frozenset(("tv%d_valve_stem" % n, "tv%d_valve_indicator" % n)))
+    },
     "reset": {
         # each box's damper shaft runs through the inlet collar's bushings and into the actuator
         p for n in range(1, 5) for p in (frozenset(("vav%d_damper_blade" % n, "vav%d_inlet" % n)),

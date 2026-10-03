@@ -7,6 +7,7 @@ Small interactive modules. Each one pairs a 3D equipment scene with BAS-style co
 - **03 VAV box:** *pressure-independent doesn't mean pressure-proof.*
 - **04 Static pressure reset:** *trim & respond, one request at a time.*
 - **05 Pumps & VFDs:** *slow the pump, don't choke it.*
+- **06 Three-way vs. two-way valves:** *three-way valves keep the pump at full speed.*
 
 Modules are grouped in the nav and on the home page: air side (01–04) and water side (05 on).
 
@@ -179,6 +180,21 @@ Where it simplifies:
 - Real pump curves aren't exact parabolas, and real efficiency islands aren't either. The shapes and the cube law are right; the exact numbers are a typical pump's, not a catalog's.
 - No minimum-flow protection, no cavitation or NPSH, no motor overload.
 - The suction gauge reads the loop's fill pressure less the strainer; the piping's own losses are all on the far side of the loop.
+
+## Three-way valves model: what's real and what's simplified
+
+What the model does:
+
+- **The loop:** the pumps module's pump on a drive, holding the differential pressure across the farthest of three coils (18 ft). The network is solved every step by marching from the far coil back to the pump and bisecting for where it meets the pump curve: three branches off supply-and-return mains with a few feet of loss between them, and 20 ft through the chiller and plant piping.
+- **Branches:** a coil (12 ft at its 100 gpm design) and its valve (6 ft wide open). A two-way valve is the coil and an equal-percentage valve in series. A three-way branch is a constant resistance (the bypass balanced to match the coil) whose flow the valve splits between the coil and the bypass, linearly. With the bypass's balancing valve wide open, the bypass side takes an eighth of the coil's resistance, so the branch hogs water.
+- **Coils:** capacity against water flow on a "half the water does most of the work" curve, and the water can't leave warmer than 3 °F under the 80 °F air coming in. Each coil's loop opens its valve until the coil delivers its share of the building load; the coil's leaving water follows from its heat and flow, and the bypass water comes back at 44 °F.
+- **The chiller:** only as a fixed 44 °F supply and a 105 gpm minimum flow (35 % of design), flagged when the loop drops below it.
+
+Where it simplifies:
+
+- Real three-way valves don't hold their total flow perfectly constant; mid-stroke it can sag or bulge by 10 % or more depending on the valve.
+- The coils' air side is a fixed 80 °F entering air; the loads are a single building-load slider shared out between them.
+- No chiller dynamics: the supply stays at 44 °F whatever comes back (module 07 is about the plant).
 
 ## Airflow
 

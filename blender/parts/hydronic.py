@@ -214,3 +214,43 @@ def gauge(scene, name, base, normal, rb, drive, dial_r=0.045, stem=0.07, face=(0
     needle = nb.to_object(scene, name + "_needle", matrix=N, parent=obj, bevel=0.0)
     H.set_motion(needle, "rotate", (135.0, -135.0), drive)
     return obj, needle
+
+
+def three_way_valve(scene, prefix, route, point, rb, drive, port_len=0.07, parent=None):
+    """Three-way mixing valve: piping's globe control valve and actuator with a
+    third port out the bottom of the body for the bypass. Returns the control
+    valve's dict plus `port` (world point at the bottom port's flange face)."""
+    cv = piping.control_valve(scene, prefix, route, point, rb, drive, parent=parent)
+    p = cv["center"]
+    mb = H.MeshBuilder()
+    z0, z1 = p.z - rb * 1.4, p.z - rb * 2.4 - port_len
+    mb.cylinder((p.x, p.y, z0), (p.x, p.y, z1 + 0.013), rb * 1.05, SEG, "mat_valve", bw=0.6)
+    mb.cylinder((p.x, p.y, z1 + 0.013), (p.x, p.y, z1), rb * 2.6, 20, "mat_valve", bw=1.0)
+    for k in range(4):
+        ang = math.pi / 4 + k * math.pi / 2
+        x, y = p.x + rb * 2.0 * math.cos(ang), p.y + rb * 2.0 * math.sin(ang)
+        mb.cylinder((x, y, z1 - 0.006), (x, y, z1 + 0.018), 0.0038, 6, "mat_steel", bw=0.0)
+    mb.to_object(scene, prefix + "_valve_port", matrix=Matrix.Translation((p.x, p.y, (z0 + z1) / 2)), parent=cv["body"],
+                 space="world", bevel=0.0015, segments=1)
+    cv["port"] = Vector((p.x, p.y, z1))
+    return cv
+
+
+def dp_transmitter(scene, name, at, taps, parent=None):
+    """Differential pressure transmitter: a small housing at `at` with two
+    impulse tubes to the pipe taps `taps` (world points, high side first)."""
+    at = Vector(at)
+    mb = H.MeshBuilder()
+    mb.box(at + Vector((-0.05, -0.035, -0.06)), at + Vector((0.05, 0.035, 0.06)), "mat_housing", bw=1.0)
+    mb.box(at + Vector((-0.035, -0.0365, 0.0)), at + Vector((0.035, -0.035, 0.045)), "mat_dark", bw=0.1)
+    mb.box(at + Vector((-0.028, -0.0375, 0.012)), at + Vector((0.0, -0.0365, 0.03)), "mat_accent", bw=0.1)
+    for k, tap in enumerate(taps):
+        tap = Vector(tap)
+        sx = -0.025 if k == 0 else 0.025
+        a = at + Vector((sx, 0.0, -0.06))
+        rt = piping.Route([a, Vector((a.x, a.y, a.z - 0.08)), Vector((tap.x, a.y, a.z - 0.08)), Vector((tap.x, tap.y, a.z - 0.08)),
+                           tap], 0.03)
+        mb.tube(rt.pts, 0.004, 8, "mat_valve", bw=0.0)
+        mb.cylinder(tap + Vector((0, 0, 0.0)), tap + Vector((0, 0, 0.018)), 0.008, 6, "mat_valve", bw=0.5)
+    return mb.to_object(scene, name, matrix=Matrix.Translation(at), parent=parent, space="world", bevel=0.004,
+                        segments=1)

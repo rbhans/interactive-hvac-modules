@@ -40,7 +40,7 @@ def end_suction(scene, prefix, cx, zs, base_z, r_suc, r_dis, R=0.23, W=0.15, par
     shell(mb, -90.0, 90.0)
     # suction nozzle and flange (-X)
     xs1 = xa - 0.13
-    D.tube_wall(mb, xs1 + 0.022, xa + 0.004, r_suc, r_suc + 0.009, SEG, "mat_pump", axis, bw=0.6)
+    D.tube_wall(mb, xs1 + 0.022, xa, r_suc, r_suc + 0.009, SEG, "mat_pump", axis, bw=0.6)
     D.tube_wall(mb, xs1, xs1 + 0.022, r_suc, r_suc * 1.75 + 0.02, SEG, "mat_pump", axis, bw=0.8)
     out["suction_x"] = xs1
     # discharge nozzle and flange (top)
