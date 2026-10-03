@@ -34,6 +34,8 @@ export interface FlowBinding<O> {
    * (a supply main running past, air mixing in a room). Other air streams are only the field's fallback.
    */
   withField?: boolean;
+  /** Only draw the stream while this returns true (its pipe hidden otherwise, see `Bindings.visibility`) */
+  visible?: (o: O) => boolean;
 }
 
 /**
@@ -128,6 +130,8 @@ export interface Bindings<I, O> {
    * core along its path instead of streaks.
    */
   liquid?: { pipes: string[] };
+  /** Parts shown only while `when` returns true: equipment that comes and goes with a setting */
+  visibility?: { parts: string[]; when: (o: O) => boolean }[];
   /**
    * Node names or prefixes that receive the key light's shadows but don't cast them: a room's walls,
    * floor and ceiling, which would otherwise throw the whole room into the "sun's" shadow.

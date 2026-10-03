@@ -2,7 +2,7 @@
 
 <Term id="chw">Chilled water</Term> comes from the chillers at 44 °F. A pump pushes it along the supply main, every air handler's <Term id="coil">cooling coil</Term> takes what it needs, and the water goes back to the chillers along the return main, warmer. At design each coil here takes 100 gpm and warms it 12 °F.
 
-Each coil's control valve sits on its return. It's a <Term id="threeway">three-way valve</Term> with a <Term id="bypass">bypass</Term> from the coil's supply: whatever water the coil doesn't need goes around it instead. Shut the bypass's <Term id="balancing">balancing valve</Term> and the same valve works as a <Term id="twoway">two-way valve</Term>. That's how a lot of buildings get converted.
+Each coil's control valve sits on its return. It's a <Term id="threeway">three-way valve</Term> with a <Term id="bypass">bypass</Term> from the coil's supply, set by a <Term id="balancing">balancing valve</Term>: whatever water the coil doesn't need goes around it instead. Converting a coil to a <Term id="twoway">two-way valve</Term> means getting rid of that bypass, by shutting it off for good or by cutting it out and swapping the valve. Switch a coil to two-way here and its bypass goes away.
 
 The pump's <Term id="vfd">drive</Term> holds the <Term id="dp">differential pressure</Term> across the farthest coil at 18 ft. In the 3D view the pipes are see-through in the cutaway: cold water blue, warmer water paler. Moving water shows its web of ripples; water that isn't moving goes still.
 
@@ -12,7 +12,7 @@ The pump's <Term id="vfd">drive</Term> holds the <Term id="dp">differential pres
 
 Load **Three-way valves**. The building's at two-thirds load and each coil only needs part of its water, so each valve sends the rest around. The loop still moves 324 gpm. The pressure at the far coil never drops, so the pump never slows: 58 Hz and 4.5 kW, all day.
 
-Load **Two-way valves**. Same load, bypasses shut. Now each valve cuts the flow instead of rerouting it. The loop drops to 122 gpm, the pressure at the far coil starts to climb, and the drive slows the pump to hold it: 33 Hz and 0.9 kW. That's the whole point of variable-speed pumping, and it only works if the valves let the flow actually drop.
+Load **Two-way valves**. Same load, no bypasses. Now each valve cuts the flow instead of rerouting it. The loop drops to 122 gpm, the pressure at the far coil starts to climb, and the drive slows the pump to hold it: 33 Hz and 0.9 kW. That's the whole point of variable-speed pumping, and it only works if the valves let the flow actually drop.
 
 </CardSection>
 

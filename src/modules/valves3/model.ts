@@ -3,8 +3,8 @@
  *
  * A chilled-water loop: a pump on a VFD, supply and return mains along the wall, three cooling coils
  * off them. Each coil's control valve is a three-way mixing valve on its return with a bypass from its
- * supply. Close the bypass's balancing valve and it works as a two-way valve: that's how a lot of
- * buildings get converted, one coil at a time.
+ * supply. Convert a coil to a two-way valve and the bypass goes (shut off for good, or cut out): that's how
+ * a lot of buildings get converted, one coil at a time.
  *
  * The same three layers as the other modules:
  *   command  — each coil's loop opening its valve until the coil delivers its load; the pump's loop
@@ -21,7 +21,7 @@ export type ValveKind = "three" | "two";
 export type OverrideMode = "auto" | "manual";
 
 export interface ValveInputs {
-  /** Each coil's valve: three-way (bypass open) or working as a two-way (bypass shut) */
+  /** Each coil's valve: three-way (with its bypass) or two-way (no bypass) */
   kinds: ValveKind[];
   /** The building's cooling load, % of design; each coil carries its share */
   load: number;

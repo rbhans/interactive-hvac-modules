@@ -61,7 +61,7 @@ export function LoopPanel({
                   className="key !min-h-[24px] !px-2 !text-[9.5px]"
                   data-on={three}
                   aria-pressed={three}
-                  title={three ? "Three-way: the bypass is open. Tap to shut it and make it a two-way." : "Two-way: the bypass is shut. Tap to open it."}
+                  title={three ? "Three-way, with its bypass. Tap to convert it to a two-way." : "Two-way, no bypass. Tap to make it a three-way again."}
                   onClick={() => setInputs((i) => ({ ...i, kinds: i.kinds.map((v, j) => (j === k ? (v === "three" ? "two" : "three") : v)) }))}
                 >
                   {three ? "3-way" : "2-way"}
@@ -83,7 +83,7 @@ export function LoopPanel({
                 <span>
                   <span className="text-screen-ink">{fmt(coilQ)}</span> gpm · out {lwt.toFixed(0)}°F
                 </span>
-                <span>{three ? <><span className="text-screen-ink">{fmt(byp)}</span> around</> : "bypass shut"}</span>
+                <span>{three ? <><span className="text-screen-ink">{fmt(byp)}</span> around</> : "no bypass"}</span>
               </div>
             </div>
           );
@@ -102,7 +102,7 @@ export function LoopPanel({
       </div>
       <p className="mt-2 text-[11.5px] leading-snug text-ink-3">
         Solid is water through the coil, colored by how warm it leaves; striped is water sent around it, still cold. Tick marks are design flow; the red mark is
-        the least the chiller will run on. Tap 3-way / 2-way to open or shut a coil&apos;s bypass.
+        the least the chiller will run on. Tap 3-way / 2-way to switch a coil&apos;s valve.
       </p>
     </div>
   );

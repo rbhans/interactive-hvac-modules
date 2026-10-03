@@ -110,7 +110,7 @@ export const controls: ControlSection<I, O>[] = [
   {
     id: "valves",
     title: "Valves",
-    description: "A three-way valve sends what its coil doesn't need around it. Shut its bypass and it works as a two-way: it cuts the flow instead.",
+    description: "A three-way valve sends what its coil doesn't need around it. Convert it to a two-way and the bypass goes: it cuts the flow instead.",
     slot: "side",
     controls: [kind(0), kind(1), kind(2)],
   },

@@ -231,9 +231,9 @@ function LiquidTube({ t, reduced }: { t: Tube; reduced: boolean }) {
     const m = mesh.current;
     if (!m) return;
     const st = store.getState();
-    m.visible = st.view.flow && !st.view.exploded;
-    if (!m.visible) return;
     const o = st.outputs;
+    m.visible = st.view.flow && !st.view.exploded && (t.binding.visible?.(o) ?? true);
+    if (!m.visible) return;
     const dt = Math.min(delta, 0.1);
     const target = Math.min(1, Math.max(0, t.binding.rate(o)));
     rate.current = rate.current === null || reduced ? target : rate.current + (target - rate.current) * (1 - Math.exp(-dt / 0.35));

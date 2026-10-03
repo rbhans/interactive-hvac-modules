@@ -87,6 +87,16 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
     [idx, mod],
   );
 
+  // parts shown only while their rule says so
+  const shown = useMemo(
+    () =>
+      (mod.bindings.visibility ?? []).map((rule) => ({
+        rule,
+        objs: [...idx.byName].filter(([name]) => rule.parts.some((p) => name === p || name.startsWith(p))).map(([, ob]) => ob),
+      })),
+    [idx, mod],
+  );
+
   const authored = useMemo(() => new Map(idx.parts.map((p) => [p.name, p.range] as const)), [idx]);
   const lookup = useMemo(() => (n: string) => authored.get(n), [authored]);
 
@@ -201,6 +211,12 @@ export function Equipment({ url, reduced, onReady }: { url: string; reduced: boo
         (hull.material as THREE.ShaderMaterial).uniforms.opacity.value = 1 - (pipe ? 0.1 : 1) * g;
         hull.visible = pipe || g < 0.97;
       }
+    }
+
+    // ── parts that come and go with a setting ─────────────────────────────
+    for (const { rule, objs } of shown) {
+      const on = rule.when(o);
+      for (const ob of objs) ob.visible = on;
     }
 
     // ── temperature tints (pipes, coil fins) ──────────────────────────────

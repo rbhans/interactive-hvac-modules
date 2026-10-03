@@ -57,7 +57,8 @@ REQUIRE = [
     "s1_pipe", "r1_pipe", "b1_pipe", "s3_pipe", "r3_pipe", "b3_pipe",
     "tv1_valve", "tv1_valve_stem", "tv2_valve_stem", "tv3_valve_stem", "bv1", "bv3",
     "anchor_pump", "anchor_dp", "anchor_return", "anchor_supply", "anchor_ahu1", "anchor_ahu2", "anchor_ahu3",
-    "flow_sup_00", "flow_ret_00", "flow_suc_00", "flow_s1_00", "flow_c1_00", "flow_r1_00", "flow_b1_00",
+    "flow_sup_00", "flow_ret_00", "flow_suc_00", "flow_s1_00", "flow_d1_00", "flow_c1_00", "flow_r1_00", "flow_b1_00",
+    "tv1_valve_port", "tv3_valve_port",
     "flow_b3_00",
 ]
 
@@ -147,7 +148,8 @@ def build_station(scene, k, cx):
     piping.jacket(scene, "s%d_pipe" % n, sup, RI_B, s0=0.0, s1=sup.length, seg=20)
     piping.jacket(scene, "r%d_pipe" % n, ret, RI_B, gaps=[tv["gap"]], s0=0.0, s1=ret.length, seg=20)
     piping.jacket(scene, "b%d_pipe" % n, byp, RI_B, gaps=[g_bv], s0=0.015, s1=byp.length, seg=20)
-    return dict(sup=sup, ret=ret, byp=byp, valve_s=ret.s_of((xr, YS, Z_RET)), xs=xs, xr=xr)
+    return dict(sup=sup, ret=ret, byp=byp, valve_s=ret.s_of((xr, YS, Z_RET)), tee_s=sup.s_of((xs, YS, Z_BYP)), xs=xs,
+                xr=xr)
 
 
 def build_plant(scene):
@@ -203,7 +205,9 @@ def build(scene):
     H.flow_path(scene, "ret", plant["ret"].flow_points(0.0, plant["ret"].length, 0.2), spread=(0.03, 0.03))
     for k, s in enumerate(stations):
         n = k + 1
-        H.flow_path(scene, "s%d" % n, s["sup"].flow_points(0.0, s["sup"].length, 0.15), spread=(0.02, 0.02))
+        # the supply drop carries the whole branch down to the bypass tee, then only the coil's share
+        H.flow_path(scene, "s%d" % n, s["sup"].flow_points(0.0, s["tee_s"], 0.15), spread=(0.02, 0.02))
+        H.flow_path(scene, "d%d" % n, s["sup"].flow_points(s["tee_s"], s["sup"].length, 0.15), spread=(0.02, 0.02))
         H.flow_path(scene, "c%d" % n, s["ret"].flow_points(0.0, s["valve_s"], 0.15), spread=(0.02, 0.02))
         H.flow_path(scene, "r%d" % n, s["ret"].flow_points(s["valve_s"], s["ret"].length, 0.15), spread=(0.02, 0.02))
         H.flow_path(scene, "b%d" % n, list(reversed(s["byp"].flow_points(0.0, s["byp"].length, 0.12))),

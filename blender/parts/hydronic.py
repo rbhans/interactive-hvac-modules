@@ -216,11 +216,13 @@ def gauge(scene, name, base, normal, rb, drive, dial_r=0.045, stem=0.07, face=(0
     return obj, needle
 
 
-def three_way_valve(scene, prefix, route, point, rb, drive, port_len=0.07, parent=None):
+def three_way_valve(scene, prefix, route, point, rb, drive, port_len=0.07, travel=0.045, parent=None):
     """Three-way mixing valve: piping's globe control valve and actuator with a
-    third port out the bottom of the body for the bypass. Returns the control
-    valve's dict plus `port` (world point at the bottom port's flange face)."""
-    cv = piping.control_valve(scene, prefix, route, point, rb, drive, parent=parent)
+    third port out the bottom of the body for the bypass (`<prefix>_valve_port`,
+    its own object so a module can take it away). Its stem travels `travel` m,
+    long enough to read. Returns the control valve's dict plus `port` (world
+    point at the bottom port's flange face)."""
+    cv = piping.control_valve(scene, prefix, route, point, rb, drive, travel=travel, parent=parent)
     p = cv["center"]
     mb = H.MeshBuilder()
     z0, z1 = p.z - rb * 1.4, p.z - rb * 2.4 - port_len

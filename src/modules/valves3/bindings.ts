@@ -19,10 +19,13 @@ const flows: Record<string, FlowBinding<O>> = {
 };
 for (const k of [0, 1, 2]) {
   const n = k + 1;
+  // the supply drop: the whole branch down to the bypass tee, then only the coil's share
   flows[`s${n}`] = water((o) => co(o, "branchQ", k) / 100, (o) => o.supplyT, BRANCH);
+  flows[`d${n}`] = water((o) => co(o, "coilRate", k), (o) => o.supplyT, BRANCH);
   flows[`c${n}`] = water((o) => co(o, "coilRate", k), (o) => co(o, "lwt", k), BRANCH);
   flows[`r${n}`] = water((o) => co(o, "branchQ", k) / 100, (o) => co(o, "branchT", k), BRANCH);
-  flows[`b${n}`] = water((o) => co(o, "bypassRate", k), (o) => o.supplyT, BRANCH);
+  // a two-way valve has no bypass
+  flows[`b${n}`] = { ...water((o) => co(o, "bypassRate", k), (o) => o.supplyT, BRANCH), visible: (o) => co(o, "three", k) === 1 };
 }
 
 const pipes = ["sup_main", "ret_main", "suction", ...[1, 2, 3].flatMap((n) => [`s${n}_pipe`, `r${n}_pipe`, `b${n}_pipe`])];
@@ -39,8 +42,8 @@ const ahuCallouts: Callout<O>[] = [0, 1, 2].map((k) => ({
   label: `AHU-${k + 1}`,
   value: (o) =>
     co(o, "three", k)
-      ? `3-WAY · ${f0(co(o, "coilQ", k))} through, ${f0(co(o, "bypassQ", k))} around`
-      : `2-WAY · ${f0(co(o, "coilQ", k))} gpm, out at ${f0(co(o, "lwt", k))}°F`,
+      ? `3-WAY ${f0(co(o, "valve", k))}% · ${f0(co(o, "coilQ", k))} through, ${f0(co(o, "bypassQ", k))} around`
+      : `2-WAY ${f0(co(o, "valve", k))}% · ${f0(co(o, "coilQ", k))} gpm, out ${f0(co(o, "lwt", k))}°F`,
   tone: (o) => (k === 0 && o.bypassOpen ? "fault" : "cold"),
 }));
 
@@ -48,6 +51,11 @@ export const bindings: Bindings<ValveInputs, O> = {
   // GLB drives (pumpSpeed, valvePos1–3) are already 0–1 outputs.
   noCastShadow: ["wall_back"],
   liquid: { pipes },
+  // a coil switched to two-way loses its bypass: the pipe, its balancing valve and the valve's third port
+  visibility: [0, 1, 2].map((k) => ({
+    parts: [`b${k + 1}_pipe`, `bv${k + 1}`, `tv${k + 1}_valve_port`],
+    when: (o: O) => co(o, "three", k) === 1,
+  })),
   flows,
   tints,
 

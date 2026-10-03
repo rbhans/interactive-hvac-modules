@@ -14,7 +14,7 @@ export const presets: Preset<ValveInputs, ValveState>[] = [
   {
     id: "two",
     label: "Two-way valves",
-    cue: "Same load, every bypass shut. Now each valve cuts the flow instead of rerouting it: the loop drops to 122 gpm, the pump slows to 33 Hz and 0.9 kW, and the water goes back 18 °F warmer.",
+    cue: "Same load, every coil converted to two-way, no bypasses. Now each valve cuts the flow instead of rerouting it: the loop drops to 122 gpm, the pump slows to 33 Hz and 0.9 kW, and the water goes back 18 °F warmer.",
     inputs: { ...base, kinds: all("two") },
   },
   {
